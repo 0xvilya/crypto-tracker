@@ -24,23 +24,23 @@
 <nav class="bottom-nav" id="nav">
   <button type="button" class="nav-btn on" data-p="home">
     <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg>
-    <span data-i18n="nav_home">Главная</span>
+    <span>Главная</span>
   </button>
   <button type="button" class="nav-btn" data-p="port">
     <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
-    <span data-i18n="nav_port">Портфель</span>
+    <span>Портфель</span>
   </button>
   <button type="button" class="nav-btn" data-p="news">
     <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>
-    <span data-i18n="nav_news">Новости</span>
+    <span>Новости</span>
   </button>
   <button type="button" class="nav-btn" data-p="wallet">
     <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg>
-    <span data-i18n="nav_wallet">Кошелёк</span>
+    <span>Кошелёк</span>
   </button>
   <button type="button" class="nav-btn" data-p="tools">
     <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg>
-    <span data-i18n="nav_tools">Инструменты</span>
+    <span>Инструменты</span>
   </button>
 </nav>
 
@@ -52,18 +52,18 @@
     </div>
     <div class="search-row">
       <div class="search-wrap">
-        <input id="q" type="search" placeholder="Поиск монеты..." autocomplete="off" data-i18n-ph="search_ph"/>
+        <input id="q" type="search" placeholder="Поиск монеты..." autocomplete="off"/>
         <div class="sr" id="sr" style="display:none"></div>
       </div>
       <button type="button" class="btn" id="refBtn" title="Обновить">↻</button>
     </div>
     <div class="card">
-      <h2><span data-i18n="my_coins">Мои монеты</span>
+      <h2><span>Мои монеты</span>
         <button type="button" class="btn-ghost" id="addTop" style="padding:.25rem .55rem;font-size:.7rem">+ Top</button>
       </h2>
       <div class="table-x">
         <table>
-          <thead><tr><th>#</th><th data-i18n="th_coin">Монета</th><th data-i18n="th_price">Цена</th><th>24h</th><th></th></tr></thead>
+          <thead><tr><th>#</th><th>Монета</th><th>Цена</th><th>24h</th><th></th></tr></thead>
           <tbody id="wBody"><tr><td colspan="5" class="empty">...</td></tr></tbody>
         </table>
       </div>
@@ -75,26 +75,35 @@
       <div class="tv" id="tv"></div>
       <div class="ex" id="ex"></div>
     </div>
-    <div class="card"><h2>🔥 <span data-i18n="trends">Тренды</span></h2><div id="trends" class="empty">...</div></div>
+    <div class="card"><h2>🔥 Тренды</h2><div id="trends" class="empty">...</div></div>
   </section>
 
   <section class="page" id="p-port">
     <div class="card">
-      <h2 data-i18n="wallet_assets">Активы кошелька</h2>
-      <div id="holdings" class="empty" data-i18n="connect_wallet_hint">Подключите кошелёк на вкладке «Кошелёк»</div>
+      <h2>Активы кошелька</h2>
+      <div id="holdings" class="empty">Подключите кошелёк на вкладке «Кошелёк»</div>
     </div>
     <div class="card">
-      <h2 data-i18n="manual_port">Мой портфель (вручную)</h2>
-      <p class="muted" style="margin-bottom:.6rem" data-i18n="manual_hint">Добавьте несколько активов — сумма и P&L посчитаются автоматически</p>
-      <div class="form">
-        <div class="field"><label data-i18n="coin">Монета</label><select id="mhCoin"></select></div>
-        <div class="field"><label data-i18n="qty">Количество</label><input type="number" id="mhQty" min="0" step="any" placeholder="0.5"/></div>
-        <div class="field"><label data-i18n="buy_price">Цена покупки</label><input type="number" id="mhBuy" min="0" step="any" placeholder="опц."/></div>
+      <h2>Мой портфель (вручную)</h2>
+      <p class="muted" style="margin-bottom:.6rem">Поиск любой монеты → количество → + Добавить. Можно добавлять сколько угодно активов.</p>
+      <div class="form" style="grid-template-columns:1fr">
+        <div class="field"><label>Монета (поиск любой)</label>
+          <div class="search-wrap">
+            <input id="mhQ" type="search" placeholder="BTC, ETH, SOL, PEPE..." autocomplete="off"/>
+            <div class="sr" id="mhSr" style="display:none"></div>
+          </div>
+          <input type="hidden" id="mhCoin"/>
+          <div class="muted" id="mhPicked" style="margin-top:.3rem"></div>
+        </div>
       </div>
-      <button type="button" class="btn" id="mhAdd" style="width:100%;margin-top:.6rem" data-i18n="add">Добавить</button>
+      <div class="form" style="margin-top:.5rem">
+        <div class="field"><label>Количество</label><input type="number" id="mhQty" min="0" step="any" placeholder="0.5"/></div>
+        <div class="field"><label>Цена покупки</label><input type="number" id="mhBuy" min="0" step="any" placeholder="опц."/></div>
+      </div>
+      <button type="button" class="btn" id="mhAdd" style="width:100%;margin-top:.6rem">+ Добавить актив</button>
       <div id="mhList" class="empty" style="margin-top:.75rem">Пусто</div>
       <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.75rem">
-        <div class="muted" data-i18n="total_port">Итого портфель</div>
+        <div class="muted">Итого портфель</div>
         <div class="pnl-big" id="mhVal">—</div>
         <div id="mhPnl" class="muted"></div>
       </div>
@@ -104,37 +113,37 @@
       </div>
     </div>
     <div class="card">
-      <h2 data-i18n="pnl_calc">Калькулятор P&L</h2>
-      <p class="muted" style="margin-bottom:.7rem" data-i18n="pnl_hint">Дата покупки + сумма → прибыль или убыток</p>
+      <h2>Калькулятор P&L</h2>
+      <p class="muted" style="margin-bottom:.7rem">Дата покупки + сумма → прибыль или убыток</p>
       <div class="form">
-        <div class="field"><label data-i18n="coin">Монета</label><select id="pnlCoin"></select></div>
-        <div class="field"><label data-i18n="buy_date">Дата покупки</label><input type="date" id="pnlDate"/></div>
-        <div class="field"><label data-i18n="type">Тип</label>
+        <div class="field"><label>Монета</label><select id="pnlCoin"></select></div>
+        <div class="field"><label>Дата покупки</label><input type="date" id="pnlDate"/></div>
+        <div class="field"><label>Тип</label>
           <select id="pnlMode"><option value="fiat">Сумма</option><option value="qty">Количество</option></select>
         </div>
-        <div class="field"><label data-i18n="amount">Сумма</label><input type="number" id="pnlAmt" min="0" step="any" placeholder="1000"/></div>
+        <div class="field"><label>Сумма</label><input type="number" id="pnlAmt" min="0" step="any" placeholder="1000"/></div>
       </div>
-      <button type="button" class="btn" id="pnlBtn" style="width:100%;margin-top:.75rem" data-i18n="calc">Рассчитать</button>
+      <button type="button" class="btn" id="pnlBtn" style="width:100%;margin-top:.75rem">Рассчитать</button>
       <div class="pnl-box" id="pnlBox">
-        <div class="muted" data-i18n="result">Результат</div>
+        <div class="muted">Результат</div>
         <div class="pnl-big" id="pnlProfit">—</div>
         <div id="pnlPct" class="muted"></div>
         <div class="pnl-g">
-          <div><span data-i18n="buy">Покупка</span><b id="pnlBuy">—</b></div>
-          <div><span data-i18n="now">Сейчас</span><b id="pnlNow">—</b></div>
-          <div><span data-i18n="invested">Вложено</span><b id="pnlInv">—</b></div>
-          <div><span data-i18n="worth">Стоит</span><b id="pnlVal">—</b></div>
-          <div><span data-i18n="qty">Кол-во</span><b id="pnlQty">—</b></div>
-          <div><span data-i18n="days">Дней</span><b id="pnlDays">—</b></div>
+          <div><span>Покупка</span><b id="pnlBuy">—</b></div>
+          <div><span>Сейчас</span><b id="pnlNow">—</b></div>
+          <div><span>Вложено</span><b id="pnlInv">—</b></div>
+          <div><span>Стоит</span><b id="pnlVal">—</b></div>
+          <div><span>Кол-во</span><b id="pnlQty">—</b></div>
+          <div><span>Дней</span><b id="pnlDays">—</b></div>
         </div>
       </div>
     </div>
-    <div class="card"><h2 data-i18n="history">История расчётов</h2><div id="pnlSaved" class="empty">Пусто</div></div>
+    <div class="card"><h2>История расчётов</h2><div id="pnlSaved" class="empty">Пусто</div></div>
   </section>
 
   <section class="page" id="p-news">
     <div class="card">
-      <h2 data-i18n="news">Новости</h2>
+      <h2>Новости</h2>
       <div class="tabs" id="newsTabs">
         <button type="button" class="tab on" data-f="all">Все</button>
         <button type="button" class="tab" data-f="BTC">Bitcoin</button>
@@ -150,7 +159,7 @@
       <div id="newsList" class="empty">Загрузка...</div>
     </div>
     <div class="card">
-      <h2 data-i18n="outlook_title">Что может произойти</h2>
+      <h2>Что может произойти</h2>
       <p class="muted" style="font-size:.82rem;line-height:1.55" id="outlook">Аналитика появится после загрузки ленты.</p>
       <div id="coinOutlook" style="margin-top:.75rem"></div>
     </div>
@@ -158,20 +167,20 @@
 
   <section class="page" id="p-wallet">
     <div class="card">
-      <h2 data-i18n="connect_wallet">Подключить кошелёк</h2>
-      <p class="muted" style="margin-bottom:.7rem" data-i18n="wallet_hint">Нажмите → откроется приложение → разрешите доступ. Баланс появится здесь и в «Портфель».</p>
+      <h2>Подключить кошелёк</h2>
+      <p class="muted" style="margin-bottom:.7rem">MetaMask / Trust / Phantom и др. — откроется приложение. Для TON: вставьте адрес в блок ниже (сеть TON).</p>
       <div class="w-grid" id="wGrid"></div>
       <div id="wInfo" style="display:none;margin-top:.85rem">
         <div class="muted" style="font-family:monospace;font-size:.75rem;word-break:break-all" id="wAddr"></div>
         <div class="muted" id="wChain" style="margin:.3rem 0"></div>
         <div style="font-size:1.3rem;font-weight:800" id="wBal">—</div>
-        <button type="button" class="btn-danger" id="wDisc" style="margin-top:.6rem" data-i18n="disconnect">Отключить</button>
+        <button type="button" class="btn-danger" id="wDisc" style="margin-top:.6rem">Отключить</button>
       </div>
     </div>
     <div class="card">
-      <h2 data-i18n="manual_addr">Адрес вручную</h2>
+      <h2>Адрес вручную</h2>
       <div class="form">
-        <div class="field"><label data-i18n="chain">Сеть</label>
+        <div class="field"><label>Сеть</label>
           <select id="manChain">
             <option value="eth">Ethereum</option>
             <option value="bsc">BNB Chain</option>
@@ -184,20 +193,20 @@
             <option value="btc">Bitcoin</option>
           </select>
         </div>
-        <div class="field"><label data-i18n="address">Адрес</label><input type="text" id="manAddr" placeholder="0x... / T... / bc1..."/></div>
+        <div class="field"><label>Адрес</label><input type="text" id="manAddr" placeholder="0x... / EQ... / bc1..."/></div>
       </div>
-      <button type="button" class="btn-ghost" id="manBtn" style="margin-top:.5rem" data-i18n="show_bal">Показать баланс</button>
+      <button type="button" class="btn-ghost" id="manBtn" style="margin-top:.5rem">Показать баланс</button>
       <div class="muted" id="manRes" style="margin-top:.4rem"></div>
     </div>
   </section>
 
   <section class="page" id="p-tools">
     <div class="card">
-      <h2 data-i18n="converter">Конвертер</h2>
+      <h2>Конвертер</h2>
       <div class="form">
-        <div class="field"><label data-i18n="amount">Сумма</label><input type="number" id="cAmt" value="1" min="0" step="any"/></div>
-        <div class="field"><label data-i18n="coin">Монета</label><select id="cFrom"></select></div>
-        <div class="field"><label data-i18n="to">В</label>
+        <div class="field"><label>Сумма</label><input type="number" id="cAmt" value="1" min="0" step="any"/></div>
+        <div class="field"><label>Монета</label><select id="cFrom"></select></div>
+        <div class="field"><label>В</label>
           <select id="cTo"><option value="fiat">Фиат</option><option value="btc">BTC</option></select>
         </div>
       </div>
@@ -223,30 +232,30 @@
       <div id="gasBox" class="muted">Загрузка...</div>
     </div>
     <div class="card">
-      <h2 data-i18n="tp_title">Цель прибыли</h2>
-      <p class="muted" style="margin-bottom:.5rem" data-i18n="tp_hint">Сколько нужно, чтобы получить нужный %</p>
+      <h2>Цель прибыли</h2>
+      <p class="muted" style="margin-bottom:.5rem">Сколько нужно, чтобы получить нужный %</p>
       <div class="form">
-        <div class="field"><label data-i18n="invested">Вложено</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000"/></div>
-        <div class="field"><label data-i18n="target_pct">Цель %</label><input type="number" id="tpPct" min="0" step="any" value="50" placeholder="50"/></div>
+        <div class="field"><label>Вложено</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000"/></div>
+        <div class="field"><label>Цель %</label><input type="number" id="tpPct" min="0" step="any" value="50" placeholder="50"/></div>
       </div>
       <div style="margin-top:.6rem;font-weight:700" id="tpOut">—</div>
     </div>
     <div class="card">
-      <h2 data-i18n="dca_title">DCA калькулятор</h2>
-      <p class="muted" style="margin-bottom:.5rem" data-i18n="dca_hint">Сколько накопится при регулярных покупках</p>
+      <h2>DCA калькулятор</h2>
+      <p class="muted" style="margin-bottom:.5rem">Сколько накопится при регулярных покупках</p>
       <div class="form">
-        <div class="field"><label data-i18n="per_month">Сумма/мес</label><input type="number" id="dcaAmt" min="0" step="any" value="100"/></div>
-        <div class="field"><label data-i18n="months">Месяцев</label><input type="number" id="dcaMonths" min="1" step="1" value="12"/></div>
-        <div class="field"><label data-i18n="growth">Ожид. рост %/год</label><input type="number" id="dcaGrowth" step="any" value="20"/></div>
+        <div class="field"><label>Сумма/мес</label><input type="number" id="dcaAmt" min="0" step="any" value="100"/></div>
+        <div class="field"><label>Месяцев</label><input type="number" id="dcaMonths" min="1" step="1" value="12"/></div>
+        <div class="field"><label>Ожид. рост %/год</label><input type="number" id="dcaGrowth" step="any" value="20"/></div>
       </div>
       <div style="margin-top:.6rem;font-weight:700" id="dcaOut">—</div>
     </div>
     <div class="card">
-      <h2 data-i18n="dominance">Доминация</h2>
+      <h2>Доминация</h2>
       <div id="domList" class="muted">—</div>
     </div>
     <div class="card">
-      <h2 data-i18n="links">Быстрые ссылки</h2>
+      <h2>Быстрые ссылки</h2>
       <div class="ex">
         <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a>
         <a href="https://www.tradingview.com/markets/cryptocurrencies/" target="_blank" rel="noopener">TradingView</a>
