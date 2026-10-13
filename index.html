@@ -56,9 +56,7 @@
       background: var(--accent); color: #000; border: none; border-radius: 8px;
       padding: 0.7rem 1rem; font-weight: 600; cursor: pointer;
     }
-    .btn-outline {
-      background: transparent; border: 1px solid var(--border); color: var(--text);
-    }
+    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
     .grid {
       display: grid;
       grid-template-columns: minmax(0, 1fr) 360px;
@@ -156,7 +154,7 @@
         <input id="searchInput" type="text" placeholder="Поиск любой монеты: BTC, ETH, PEPE..." autocomplete="off" />
         <div id="searchResults" class="search-results" style="display:none"></div>
       </div>
-      <button id="refreshBtn" type="button">Обновить</button>
+      <button id="refreshBtn" type="button">Обнов��ть</button>
     </div>
 
     <div class="grid">
@@ -187,7 +185,7 @@
 
         <div id="detailCard" class="card" style="display:none;">
           <div class="detail-header">
-            <img id="detailImg" src="" alt="" />
+            <img id="detailImg" src="" alt="" onerror="this.onerror=null;this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;64&quot; height=&quot;64&quot;><rect width=&quot;100%&quot; height=&quot;100%&quot; fill=&quot;%23151a21&quot;/><text x=&quot;50%&quot; y=&quot;50%&quot; font-size=&quot;24&quot; fill=&quot;%23848e9c&quot; text-anchor=&quot;middle&quot; dominant-baseline=&quot;middle&quot;>?</text></svg>'" />
             <div>
               <div id="detailName" style="font-weight:600"></div>
               <div id="detailSymbol" class="coin-symbol"></div>
@@ -267,7 +265,6 @@
     var chart = null;
     var currentDays = '7';
     var sideTab = 'trending';
-    var cache = {};
 
     function showToast(msg) {
       var t = document.getElementById('toast');
@@ -362,7 +359,7 @@
       tbody.innerHTML = ordered.map(function (coin, index) {
         return '<tr data-id="' + coin.id + '" class="' + (selectedId === coin.id ? 'selected' : '') + '" onclick="window._selectCoin(\'' + coin.id + '\')">' +
           '<td>' + (coin.market_cap_rank || index + 1) + '</td>' +
-          '<td><div class="coin-cell"><img src="' + coin.image + '" alt="" /><div><div class="coin-name">' + coin.name + '</div><div class="coin-symbol">' + coin.symbol + '</div></div></div></td>' +
+          '<td><div class="coin-cell"><img src="' + coin.image + '" alt="" loading="lazy" onerror="this.onerror=null;this.src=\'data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'64\\\' height=\\\'64\\\'><rect width=\\\'100%\\\' height=\\\'100%\\\' fill=\\\'%23151a21\\\'/><text x=\\\'50%\\\' y=\\\'50%\\\' font-size=\\\'24\\\' fill=\\\'%23848e9c\\\' text-anchor=\\\'middle\\\' dominant-baseline=\\\'middle\\\'>?</text></svg>\'" /><div><div class="coin-name">' + coin.name + '</div><div class="coin-symbol">' + coin.symbol + '</div></div></div></td>' +
           '<td class="price">' + formatPrice(coin.current_price) + '</td>' +
           '<td class="' + pctClass(coin.price_change_percentage_24h) + '">' + formatPct(coin.price_change_percentage_24h) + '</td>' +
           '<td class="' + pctClass(coin.price_change_percentage_7d_in_currency) + '">' + formatPct(coin.price_change_percentage_7d_in_currency) + '</td>' +
@@ -464,13 +461,13 @@
       var items = (data.coins || []).slice(0, 10);
       document.getElementById('sideList').innerHTML = items.map(function (item, index) {
         var coin = item.item;
-        return '<li><div class="trending-item" onclick="window._addCoin(\'' + coin.id + '\',\'' + coin.name.replace(/'/g, "\\'") + '\')"><span class="rank">' + (index + 1) + '</span><img src="' + coin.small + '" /><span>' + coin.name + ' <span style="color:#848e9c;font-size:0.72rem">' + coin.symbol + '</span></span></div></li>';
+        return '<li><div class="trending-item" onclick="window._addCoin(\'' + coin.id + '\',\'' + coin.name.replace(/'/g, "\\'") + '\')"><span class="rank">' + (index + 1) + '</span><img src="' + coin.small + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'64\\\' height=\\\'64\\\'><rect width=\\\'100%\\\' height=\\\'100%\\\' fill=\\\'%23151a21\\\'/><text x=\\\'50%\\\' y=\\\'50%\\\' font-size=\\\'18\\\' fill=\\\'%23848e9c\\\' text-anchor=\\\'middle\\\' dominant-baseline=\\\'middle\\\'>?</text></svg>\'" /><span>' + coin.name + ' <span style="color:#848e9c;font-size:0.72rem">' + coin.symbol + '</span></span></div></li>';
       }).join('');
     }
 
     function renderTop(data) {
       document.getElementById('sideList').innerHTML = data.map(function (coin, index) {
-        return '<li><div class="trending-item" onclick="window._addCoin(\'' + coin.id + '\',\'' + coin.name.replace(/'/g, "\\'") + '\')"><span class="rank">' + (coin.market_cap_rank || index + 1) + '</span><img src="' + coin.image + '" /><span>' + coin.name + '</span><span class="top-price" style="margin-left:auto; font-weight:700;">' + formatPrice(coin.current_price) + '</span></div></li>';
+        return '<li><div class="trending-item" onclick="window._addCoin(\'' + coin.id + '\',\'' + coin.name.replace(/'/g, "\\'") + '\')"><span class="rank">' + (coin.market_cap_rank || index + 1) + '</span><img src="' + coin.image + '" onerror="this.onerror=null;this.src=\'data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'64\\\' height=\\\'64\\\'><rect width=\\\'100%\\\' height=\\\'100%\\\' fill=\\\'%23151a21\\\'/><text x=\\\'50%\\\' y=\\\'50%\\\' font-size=\\\'18\\\' fill=\\\'%23848e9c\\\' text-anchor=\\\'middle\\\' dominant-baseline=\\\'middle\\\'>?</text></svg>\'" /><span>' + coin.name + '</span><span class="top-price" style="margin-left:auto; font-weight:700;">' + formatPrice(coin.current_price) + '</span></div></li>';
       }).join('');
     }
 
@@ -634,7 +631,7 @@
           box.innerHTML = coins.map(function (coin) {
             var safeName = (coin.name || '').replace(/'/g, "\\'");
             return '<div class="sr-item" onclick="window._addCoin(\'' + coin.id + '\',\'' + safeName + '\')">' +
-              '<img src="' + (coin.thumb || '') + '" alt="" />' +
+              '<img src="' + (coin.thumb || '') + '" alt="" onerror="this.onerror=null;this.src=\'data:image/svg+xml;utf8,<svg xmlns=\\\'http://www.w3.org/2000/svg\\\' width=\\\'64\\\' height=\\\'64\\\'><rect width=\\\'100%\\\' height=\\\'100%\\\' fill=\\\'%23151a21\\\'/><text x=\\\'50%\\\' y=\\\'50%\\\' font-size=\\\'18\\\' fill=\\\'%23848e9c\\\' text-anchor=\\\'middle\\\' dominant-baseline=\\\'middle\\\'>?</text></svg>\'" />' +
               '<div class="sr-meta"><div class="sr-name">' + coin.name + '</div><div class="sr-sym">' + (coin.symbol || '').toUpperCase() + '</div></div>' +
               '<span class="sr-rank">' + (coin.market_cap_rank ? '#' + coin.market_cap_rank : '') + '</span>' +
               '</div>';
