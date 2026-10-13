@@ -1,4 +1,4 @@
-/* v5.3 hotfixes - portfolio chips + force clean news */
+/* v5.4 — news without MyMemory, portfolio chips, tonkeeper UX */
 (function () {
   'use strict';
   var API = 'https://api.coingecko.com/api/v3';
@@ -29,22 +29,24 @@
   function getHold() { try { return JSON.parse(localStorage.getItem('ct_mh') || '[]'); } catch (e) { return []; } }
   function setHold(arr) { localStorage.setItem('ct_mh', JSON.stringify(arr)); }
 
-  try {
-    Object.keys(localStorage).forEach(function (k) {
-      if (/news/i.test(k)) {
-        try {
-          var v = localStorage.getItem(k) || '';
-          if (/MYMEMORY|YOU USED ALL AVAILABLE/i.test(v)) localStorage.removeItem(k);
-        } catch (e) {}
+  function wipeNewsCache() {
+    try {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && /news/i.test(k)) keys.push(k);
       }
-    });
-  } catch (e) {}
+      keys.forEach(function (k) { localStorage.removeItem(k); });
+    } catch (e) {}
+  }
+  wipeNewsCache();
 
   async function gTranslate(text, to) {
     if (!text || to === 'en') return text;
+    if (/MYMEMORY|YOU USED ALL AVAILABLE|TRANSLATED\.NET/i.test(text)) return text;
     try {
-      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
-        encodeURIComponent(to) + '&dt=t&q=' + encodeURIComponent(String(text).slice(0, 450));
+      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' +
+        encodeURIComponent(to) + '&dt=t&q=' + encodeURIComponent(String(text).slice(0, 400));
       var r = await fetch(url).then(function (x) { return x.json(); });
       if (r && r[0]) {
         var out = r[0].map(function (x) { return x[0]; }).join('');
@@ -54,12 +56,20 @@
     return text;
   }
 
-  async function forceNews() {
+  var newsBusy = false;
+  var newsDone = false;
+
+  async function loadCleanNews(force) {
     var box = $('newsList'); if (!box) return;
+    if (newsBusy) return;
     var html = box.innerHTML || '';
-    if (!/MYMEMORY|YOU USED ALL AVAILABLE/i.test(html) && box.querySelector('.news-item')) return;
+    var dirty = /MYMEMORY|YOU USED ALL AVAILABLE|TRANSLATED\.NET/i.test(html);
+    if (!force && !dirty && newsDone && box.querySelector('.news-item')) return;
+
+    newsBusy = true;
     var lang = localStorage.getItem('ct_lang') || 'ru';
-    box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439\u2026' : 'Loading\u2026') + '</div>';
+    box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439\u2026' : 'Loading news\u2026') + '</div>';
+
     try {
       var feeds = [
         { name: 'Cointelegraph', url: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://cointelegraph.com/rss') },
@@ -70,10 +80,13 @@
         try {
           var data = await fetch(feeds[i].url).then(function (r) { return r.json(); });
           (data.items || []).forEach(function (it) {
-            var title = String(it.title || '');
-            if (/MYMEMORY|YOU USED ALL AVAILABLE/i.test(title)) return;
+            var title = String(it.title || '').trim();
+            if (!title || /MYMEMORY|YOU USED ALL AVAILABLE/i.test(title)) return;
             all.push({
-              title: title, link: it.link, date: it.pubDate, source: feeds[i].name,
+              title: title,
+              link: it.link,
+              date: it.pubDate,
+              source: feeds[i].name,
               desc: (it.description || '').replace(/<[^>]+>/g, '').slice(0, 140)
             });
           });
@@ -81,38 +94,77 @@
       }
       all.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
       all = all.slice(0, 16);
+
       if (lang === 'ru') {
         for (var j = 0; j < all.length; j++) {
-          all[j].title = await gTranslate(all[j].title, 'ru');
-          if (all[j].desc) all[j].desc = await gTranslate(all[j].desc, 'ru');
-          if (j % 4 === 3) await new Promise(function (r) { setTimeout(r, 60); });
+          try {
+            all[j].title = await gTranslate(all[j].title, 'ru');
+            if (all[j].desc) all[j].desc = await gTranslate(all[j].desc, 'ru');
+          } catch (e) {}
+          if (j % 4 === 3) await new Promise(function (r) { setTimeout(r, 50); });
         }
       }
-      if (!all.length) { box.innerHTML = '<div class="empty">\u041d\u0435\u0442 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439</div>'; return; }
-      box.innerHTML = all.map(function (n) {
-        var d = '';
-        try { d = new Date(n.date).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
-        return '<div class="news-item"><a href="' + n.link + '" target="_blank" rel="noopener">' + n.title +
-          '</a><div class="news-meta"><span class="news-src">' + n.source + '</span> ' + d + '</div>' +
-          (n.desc ? '<div class="muted" style="margin-top:.25rem">' + n.desc + '\u2026</div>' : '') + '</div>';
-      }).join('');
+
+      if (!all.length) {
+        box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u041d\u0435\u0442 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439' : 'No news') + '</div>';
+      } else {
+        box.innerHTML = all.map(function (n) {
+          var d = '';
+          try {
+            d = new Date(n.date).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+              day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+          } catch (e) {}
+          return '<div class="news-item"><a href="' + n.link + '" target="_blank" rel="noopener">' +
+            n.title + '</a><div class="news-meta"><span class="news-src">' + n.source +
+            '</span> ' + d + '</div>' +
+            (n.desc ? '<div class="muted" style="margin-top:.25rem">' + n.desc + '\u2026</div>' : '') +
+            '</div>';
+        }).join('');
+      }
       var ol = $('outlook');
-      if (ol) ol.textContent = lang === 'ru' ? '\ud83d\udcf0 \u041d\u043e\u0432\u043e\u0441\u0442\u0438 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u044b. \u041d\u0435 \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u044b\u0439 \u0441\u043e\u0432\u0435\u0442.' : '\ud83d\udcf0 News updated. Not financial advice.';
+      if (ol) {
+        ol.textContent = lang === 'ru'
+          ? '\ud83d\udcf0 \u041d\u043e\u0432\u043e\u0441\u0442\u0438 \u043e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u044b. \u041d\u0435 \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u044b\u0439 \u0441\u043e\u0432\u0435\u0442.'
+          : '\ud83d\udcf0 News updated. Not financial advice.';
+      }
+      newsDone = true;
     } catch (e) {
-      box.innerHTML = '<div class="empty">\u041e\u0448\u0438\u0431\u043a\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438</div>';
+      box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u041e\u0448\u0438\u0431\u043a\u0430 \u0437\u0430\u0433\u0440\u0443\u0437\u043a\u0438' : 'Load error') + '</div>';
     }
+    newsBusy = false;
   }
+
+  setInterval(function () {
+    var box = $('newsList');
+    if (box && /MYMEMORY|YOU USED ALL AVAILABLE/i.test(box.innerHTML || '')) {
+      newsDone = false;
+      loadCleanNews(true);
+    }
+  }, 1500);
 
   document.querySelectorAll('.nav-btn').forEach(function (b) {
     b.addEventListener('click', function () {
-      if (b.getAttribute('data-p') === 'news') setTimeout(forceNews, 120);
+      if (b.getAttribute('data-p') === 'news') {
+        wipeNewsCache();
+        newsDone = false;
+        setTimeout(function () { loadCleanNews(true); }, 100);
+      }
       if (b.getAttribute('data-p') === 'port') setTimeout(initPortUI, 80);
     });
   });
-  setTimeout(function () {
-    var box = $('newsList');
-    if (box && /MYMEMORY|YOU USED ALL AVAILABLE/i.test(box.innerHTML || '')) forceNews();
-  }, 800);
+
+  var langSel = $('langSel');
+  if (langSel) {
+    langSel.addEventListener('change', function () {
+      wipeNewsCache();
+      newsDone = false;
+      setTimeout(function () { loadCleanNews(true); }, 200);
+    });
+  }
+
+  setTimeout(function () { loadCleanNews(true); }, 600);
+  setTimeout(function () { loadCleanNews(true); }, 2500);
 
   async function fetchPrice(id) {
     var cur = getCur();
