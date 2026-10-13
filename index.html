@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crypto Tracker — Трекер криптовалют</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b0e11;
+      --card: #151a21;
+      --card-hover: #1c232d;
+      --border: #2a3340;
+      --text: #eaecef;
+      --muted: #848e9c;
+      --green: #0ecb81;
+      --red: #f6465d;
+      --accent: #f0b90b;
+      --blue: #3b82f6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    header {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    .logo span { color: var(--accent); }
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .global-stats {
+      display: flex;
+      gap: 1.25rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .global-stats strong { color: var(--text); }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .search-bar input {
+      flex: 1;
+      min-width: 200px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.7rem 1rem;
+      color: var(--text);
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .search-bar input:focus { border-color: var(--accent); }
+    .search-bar button, .btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7rem 1.2rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: opacity 0.2s;
+    }
+    .search-bar button:hover, .btn:hover { opacity: 0.9; }
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 960px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+    .card h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Watchlist table */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    th {
+      text-align: left;
+      color: var(--muted);
+      font-weight: 500;
+      padding: 0.6rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--card-hover); cursor: pointer; }
+    .coin-cell {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .coin-cell img {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+    }
+    .coin-name { font-weight: 600; }
+    .coin-symbol { color: var(--muted); font-size: 0.8rem; text-transform: uppercase; }
+    .price { font-weight: 600; font-variant-numeric: tabular-nums; }
+    .change-up { color: var(--green); }
+    .change-down { color: var(--red); }
+    .remove-btn {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 0.2rem;
+    }
+    .remove-btn:hover { color: var(--red); }
+
+    /* Detail panel */
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1rem;
+    }
+    .detail-header img { width: 40px; height: 40px; border-radius: 50%; }
+    .detail-price {
+      font-size: 1.75rem;
+      font-weight: 700;
+      margin: 0.25rem 0;
+    }
+    .timeframes {
+      display: flex;
+      gap: 0.4rem;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+    .tf-btn {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+    .tf-btn.active, .tf-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .chart-container {
+      position: relative;
+      height: 260px;
+      margin-bottom: 1rem;
+    }
+    .exchanges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.75rem;
+    }
+    .ex-link {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      color: var(--text);
+      transition: border-color 0.2s;
+    }
+    .ex-link:hover {
+      border-color: var(--accent);
+      text-decoration: none;
+    }
+
+    /* News & trending */
+    .news-list, .trending-list {
+      list-style: none;
+    }
+    .news-list li, .trending-list li {
+      padding: 0.7rem 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+    .news-list li:last-child, .trending-list li:last-child { border-bottom: none; }
+    .trending-item {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+    }
+    .trending-item img { width: 24px; height: 24px; border-radius: 50%; }
+    .rank { color: var(--muted); font-size: 0.75rem; min-width: 1.2rem; }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 2rem 1rem;
+    }
+    .loading {
+      text-align: center;
+      color: var(--muted);
+      padding: 1.5rem;
+    }
+    .attribution {
+      text-align: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 2rem;
+      padding-bottom: 1rem;
+    }
+    .search-results {
+      position: absolute;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      max-height: 280px;
+      overflow-y: auto;
+      width: min(400px, 90vw);
+      z-index: 50;
+      margin-top: 0.25rem;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    }
+    .search-results div {
+      padding: 0.6rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      cursor: pointer;
+    }
+    .search-results div:hover { background: var(--card-hover); }
+    .search-results img { width: 22px; height: 22px; border-radius: 50%; }
+    .search-wrap { position: relative; flex: 1; min-width: 200px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <span>₿</span> Crypto Tracker
+    </div>
+    <div class="header-right">
+      <div class="global-stats" id="globalStats">
+        <span>Загрузка...</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="search-bar">
+      <div class="search-wrap">
+        <input type="text" id="searchInput" placeholder="Поиск монеты (BTC, ETH, SOL...)" autocomplete="off" />
+        <div class="search-results" id="searchResults" style="display:none"></div>
+      </div>
+      <button onclick="refreshAll()">Обновить</button>
+    </div>
+
+    <div class="grid">
+      <div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <h2>
+            Мои монеты
+            <button class="btn btn-outline" style="padding:0.35rem 0.7rem;font-size:0.8rem" onclick="addDefaults()">+Популярные</button>
+          </h2>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Монета</th>
+                  <th>Цена</th>
+                  <th>24ч</th>
+                  <th>7д</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="watchlistBody">
+                <tr><td colspan="6" class="loading">Загрузка...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card" id="detailCard" style="display:none">
+          <div class="detail-header">
+            <img id="detailImg" src="" alt="" />
+            <div>
+              <div style="font-weight:600" id="detailName"></div>
+              <div class="coin-symbol" id="detailSymbol"></div>
+            </div>
+          </div>
+          <div class="detail-price" id="detailPrice">—</div>
+          <div id="detailChange" style="font-size:0.95rem;margin-bottom:0.5rem"></div>
+
+          <div class="timeframes" id="timeframes">
+            <button class="tf-btn" data-days="1">1д</button>
+            <button class="tf-btn active" data-days="7">7д</button>
+            <button class="tf-btn" data-days="30">30д</button>
+            <button class="tf-btn" data-days="90">90д</button>
+            <button class="tf-btn" data-days="365">1г</button>
+            <button class="tf-btn" data-days="max">Max</button>
+          </div>
+          <div class="chart-container">
+            <canvas id="priceChart"></canvas>
+          </div>
+
+          <h2 style="margin-top:0.5rem">Биржи</h2>
+          <div class="exchanges" id="exchanges"></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="card" style="margin-bottom:1.5rem">
+          <h2>🔥 Тренды</h2>
+          <ul class="trending-list" id="trendingList">
+            <li class="loading">Загрузка...</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h2>📰 Новости и источники</h2>
+          <ul class="news-list" id="newsList">
+            <li><a href="https://www.coindesk.com/" target="_blank" rel="noopener">CoinDesk</a> — главные новости крипто</li>
+            <li><a href="https://cointelegraph.com/" target="_blank" rel="noopener">Cointelegraph</a></li>
+            <li><a href="https://www.theblock.co/" target="_blank" rel="noopener">The Block</a></li>
+            <li><a href="https://decrypt.co/" target="_blank" rel="noopener">Decrypt</a></li>
+            <li><a href="https://www.coingecko.com/en/news" target="_blank" rel="noopener">CoinGecko News</a></li>
+            <li><a href="https://cryptopanic.com/" target="_blank" rel="noopener">CryptoPanic</a> — агрегатор новостей</li>
+            <li><a href="https://news.bitcoin.com/" target="_blank" rel="noopener">Bitcoin.com News</a></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="attribution">
+      Data by <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a> ·
+      Не финансовый совет ·
+      <a href="https://github.com/0xvilya/crypto-tracker" target="_blank">GitHub</a>
+    </p>
+  </div>
+
+  <script>
+    const API = 'https://api.coingecko.com/api/v3';
+    const DEFAULT_IDS = ['bitcoin', 'ethereum', 'solana', 'binancecoin', 'ripple', 'cardano', 'dogecoin', 'toncoin'];
+    const EXCHANGES = [
+      { name: 'Binance', url: (s) => `https://www.binance.com/en/trade/${s.toUpperCase()}_USDT` },
+      { name: 'Bybit', url: (s) => `https://www.bybit.com/trade/usdt/${s.toUpperCase()}USDT` },
+      { name: 'Coinbase', url: (s) => `https://www.coinbase.com/price/${s.toLowerCase()}` },
+      { name: 'Kraken', url: (s) => `https://www.kraken.com/prices/${s.toLowerCase()}-usd` },
+      { name: 'OKX', url: (s) => `https://www.okx.com/trade-spot/${s.toLowerCase()}-usdt` },
+      { name: 'Bitget', url: (s) => `https://www.bitget.com/spot/${s.toUpperCase()}USDT` },
+    ];
+
+    let watchlist = JSON.parse(localStorage.getItem('crypto_watchlist') || 'null') || [...DEFAULT_IDS];
+    let selectedId = null;
+    let chart = null;
+    let currentDays = 7;
+    let marketsCache = {};
+
+    function saveWatchlist() {
+      localStorage.setItem('crypto_watchlist', JSON.stringify(watchlist));
+    }
+
+    function formatPrice(p) {
+      if (p == null) return '—';
+      if (p >= 1000) return '$' + p.toLocaleString('en-US', { maximumFractionDigits: 2 });
+      if (p >= 1) return '$' + p.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 });
+      return '$' + p.toPrecision(4);
+    }
+
+    function formatPct(p) {
+      if (p == null) return '—';
+      const sign = p >= 0 ? '+' : '';
+      return sign + p.toFixed(2) + '%';
+    }
+
+    function pctClass(p) {
+      if (p == null) return '';
+      return p >= 0 ? 'change-up' : 'change-down';
+    }
+
+    async function fetchJSON(url) {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(res.status + ' ' + res.statusText);
+      return res.json();
+    }
+
+    async function loadGlobal() {
+      try {
+        const data = await fetchJSON(API + '/global');
+        const g = data.data;
+        const mcap = g.total_market_cap.usd;
+        const change = g.market_cap_change_percentage_24h_usd;
+        document.getElementById('globalStats').innerHTML = `
+          <span>Market Cap: <strong>$${(mcap / 1e12).toFixed(2)}T</strong></span>
+          <span>24h: <strong class="${pctClass(change)}">${formatPct(change)}</strong></span>
+          <span>BTC Dom: <strong>${g.market_cap_percentage.btc.toFixed(1)}%</strong></span>
+        `;
+      } catch (e) {
+        document.getElementById('globalStats').innerHTML = '<span>Данные недоступны</span>';
+      }
+    }
+
+    async function loadWatchlist() {
+      if (!watchlist.length) {
+        document.getElementById('watchlistBody').innerHTML =
+          '<tr><td colspan="6" class="empty">Добавьте монеты через поиск или кнопку «+Популярные»</td></tr>';
+        return;
+      }
+      try {
+        const ids = watchlist.join(',');
+        const data = await fetchJSON(
+          `${API}/coins/markets?vs_currency=usd&ids=${ids}&order=market_cap_desc&sparkline=false&price_change_percentage=24h,7d`
+        );
+        marketsCache = {};
+        data.forEach(c => marketsCache[c.id] = c);
+
+        // keep order of watchlist
+        const ordered = watchlist.map(id => data.find(c => c.id === id)).filter(Boolean);
+
+        const tbody = document.getElementById('watchlistBody');
+        tbody.innerHTML = ordered.map((c, i) => `
+          <tr data-id="${c.id}" onclick="selectCoin('${c.id}')">
+            <td>${c.market_cap_rank || i + 1}</td>
+            <td>
+              <div class="coin-cell">
+                <img src="${c.image}" alt="" loading="lazy" />
+                <div>
+                  <div class="coin-name">${c.name}</div>
+                  <div class="coin-symbol">${c.symbol}</div>
+                </div>
+              </div>
+            </td>
+            <td class="price">${formatPrice(c.current_price)}</td>
+            <td class="${pctClass(c.price_change_percentage_24h)}">${formatPct(c.price_change_percentage_24h)}</td>
+            <td class="${pctClass(c.price_change_percentage_7d_in_currency)}">${formatPct(c.price_change_percentage_7d_in_currency)}</td>
+            <td><button class="remove-btn" onclick="event.stopPropagation();removeCoin('${c.id}')" title="Удалить">×</button></td>
+          </tr>
+        `).join('');
+
+        if (!selectedId && ordered.length) selectCoin(ordered[0].id);
+        else if (selectedId) selectCoin(selectedId);
+      } catch (e) {
+        document.getElementById('watchlistBody').innerHTML =
+          `<tr><td colspan="6" class="empty">Ошибка загрузки. Попробуйте обновить позже.<br><small>${e.message}</small></td></tr>`;
+      }
+    }
+
+    async function selectCoin(id) {
+      selectedId = id;
+      const c = marketsCache[id];
+      const card = document.getElementById('detailCard');
+      card.style.display = 'block';
+
+      if (c) {
+        document.getElementById('detailImg').src = c.image;
+        document.getElementById('detailName').textContent = c.name;
+        document.getElementById('detailSymbol').textContent = c.symbol.toUpperCase();
+        document.getElementById('detailPrice').textContent = formatPrice(c.current_price);
+        const ch = c.price_change_percentage_24h;
+        document.getElementById('detailChange').innerHTML =
+          `<span class="${pctClass(ch)}">${formatPct(ch)} за 24ч</span>`;
+
+        const exDiv = document.getElementById('exchanges');
+        exDiv.innerHTML = EXCHANGES.map(ex =>
+          `<a class="ex-link" href="${ex.url(c.symbol)}" target="_blank" rel="noopener">${ex.name}</a>`
+        ).join('');
+      }
+
+      await loadChart(id, currentDays);
+    }
+
+    async function loadChart(id, days) {
+      currentDays = days;
+      document.querySelectorAll('.tf-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.days === String(days));
+      });
+
+      try {
+        const data = await fetchJSON(
+          `${API}/coins/${id}/market_chart?vs_currency=usd&days=${days}`
+        );
+        const prices = data.prices;
+        const labels = prices.map(p => {
+          const d = new Date(p[0]);
+          if (days === 1) return d.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+          if (days <= 90) return d.toLocaleDateString('ru', { day: 'numeric', month: 'short' });
+          return d.toLocaleDateString('ru', { month: 'short', year: '2-digit' });
+        });
+        const values = prices.map(p => p[1]);
+
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        if (chart) chart.destroy();
+
+        const isUp = values[values.length - 1] >= values[0];
+        chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [{
+              data: values,
+              borderColor: isUp ? '#0ecb81' : '#f6465d',
+              backgroundColor: isUp ? 'rgba(14,203,129,0.08)' : 'rgba(246,70,93,0.08)',
+              fill: true,
+              tension: 0.15,
+              pointRadius: 0,
+              borderWidth: 2,
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                mode: 'index',
+                intersect: false,
+                callbacks: {
+                  label: (ctx) => formatPrice(ctx.raw)
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: { color: '#848e9c', maxTicksLimit: 8, font: { size: 11 } },
+                grid: { color: 'rgba(42,51,64,0.5)' }
+              },
+              y: {
+                ticks: {
+                  color: '#848e9c',
+                  font: { size: 11 },
+                  callback: (v) => formatPrice(v)
+                },
+                grid: { color: 'rgba(42,51,64,0.5)' }
+              }
+            },
+            interaction: { mode: 'index', intersect: false }
+          }
+        });
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    document.getElementById('timeframes').addEventListener('click', (e) => {
+      if (e.target.classList.contains('tf-btn') && selectedId) {
+        loadChart(selectedId, e.target.dataset.days);
+      }
+    });
+
+    function removeCoin(id) {
+      watchlist = watchlist.filter(x => x !== id);
+      saveWatchlist();
+      if (selectedId === id) {
+        selectedId = null;
+        document.getElementById('detailCard').style.display = 'none';
+      }
+      loadWatchlist();
+    }
+
+    function addCoin(id) {
+      if (!watchlist.includes(id)) {
+        watchlist.push(id);
+        saveWatchlist();
+        loadWatchlist().then(() => selectCoin(id));
+      } else {
+        selectCoin(id);
+      }
+      document.getElementById('searchInput').value = '';
+      document.getElementById('searchResults').style.display = 'none';
+    }
+
+    function addDefaults() {
+      DEFAULT_IDS.forEach(id => {
+        if (!watchlist.includes(id)) watchlist.push(id);
+      });
+      saveWatchlist();
+      loadWatchlist();
+    }
+
+    // Search
+    let searchTimer;
+    document.getElementById('searchInput').addEventListener('input', (e) => {
+      clearTimeout(searchTimer);
+      const q = e.target.value.trim();
+      if (q.length < 1) {
+        document.getElementById('searchResults').style.display = 'none';
+        return;
+      }
+      searchTimer = setTimeout(async () => {
+        try {
+          const data = await fetchJSON(API + '/search?query=' + encodeURIComponent(q));
+          const coins = (data.coins || []).slice(0, 8);
+          const box = document.getElementById('searchResults');
+          if (!coins.length) {
+            box.innerHTML = '<div style="padding:0.8rem;color:#848e9c">Ничего не найдено</div>';
+          } else {
+            box.innerHTML = coins.map(c => `
+              <div onclick="addCoin('${c.id}')">
+                <img src="${c.thumb}" alt="" />
+                <span>${c.name} <span style="color:#848e9c">${c.symbol}</span></span>
+              </div>
+            `).join('');
+          }
+          box.style.display = 'block';
+        } catch (err) {
+          console.error(err);
+        }
+      }, 350);
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-wrap')) {
+        document.getElementById('searchResults').style.display = 'none';
+      }
+    });
+
+    async function loadTrending() {
+      try {
+        const data = await fetchJSON(API + '/search/trending');
+        const coins = data.coins || [];
+        document.getElementById('trendingList').innerHTML = coins.slice(0, 7).map((item, i) => {
+          const c = item.item;
+          return `
+            <li>
+              <div class="trending-item" onclick="addCoin('${c.id}')">
+                <span class="rank">${i + 1}</span>
+                <img src="${c.small}" alt="" />
+                <span>${c.name} <span style="color:#848e9c;font-size:0.8rem">${c.symbol}</span></span>
+              </div>
+            </li>
+          `;
+        }).join('');
+      } catch (e) {
+        document.getElementById('trendingList').innerHTML = '<li class="empty">Не удалось загрузить</li>';
+      }
+    }
+
+    function refreshAll() {
+      loadGlobal();
+      loadWatchlist();
+      loadTrending();
+    }
+
+    // Init
+    refreshAll();
+    // auto-refresh every 90 seconds
+    setInterval(refreshAll, 90000);
+  </script>
+</body>
+</html>
