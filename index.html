@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0f"/>
+<title>Crypto Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<script src="https://s3.tradingview.com/tv.js"></script>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+<header class="topbar">
+  <div class="logo"><span>₿</span> Crypto Tracker</div>
+  <div class="top-actions">
+    <span class="chip" id="mcapChip">Cap: —</span>
+    <span class="chip" id="domChip">BTC: —</span>
+    <select id="curSel" class="select"><option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option><option value="pln">PLN</option></select>
+    <select id="langSel" class="select"><option value="ru">RU</option><option value="en">EN</option></select>
+    <button type="button" class="select" id="themeBtn">Dark</button>
+  </div>
+</header>
+
+<nav class="bottom-nav" id="nav">
+  <button type="button" class="nav-btn on" data-p="home">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg>
+    <span data-i18n="nav_home">Главная</span>
+  </button>
+  <button type="button" class="nav-btn" data-p="port">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg>
+    <span data-i18n="nav_port">Портфель</span>
+  </button>
+  <button type="button" class="nav-btn" data-p="news">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg>
+    <span data-i18n="nav_news">Новости</span>
+  </button>
+  <button type="button" class="nav-btn" data-p="wallet">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg>
+    <span data-i18n="nav_wallet">Кошелёк</span>
+  </button>
+  <button type="button" class="nav-btn" data-p="tools">
+    <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg>
+    <span data-i18n="nav_tools">Инструменты</span>
+  </button>
+</nav>
+
+<div class="wrap">
+  <section class="page on" id="p-home">
+    <div class="stats">
+      <div class="stat">24h <b id="st24">—</b></div>
+    </div>
+    <div class="search-wrap">
+      <input type="search" id="q" placeholder="Поиск монеты…" autocomplete="off"/>
+      <div class="sr-box" id="sr" style="display:none"></div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem">
+        <h2 data-i18n="watchlist">Список</h2>
+        <div style="display:flex;gap:.4rem">
+          <button type="button" class="btn-ghost" id="addTop">+ Top</button>
+          <button type="button" class="btn-ghost" id="refBtn" title="Refresh">↻</button>
+        </div>
+      </div>
+      <div class="table-x">
+        <table>
+          <thead><tr><th>#</th><th>Coin</th><th>Price</th><th>24h</th><th></th></tr></thead>
+          <tbody id="wBody"><tr><td colspan="5" class="empty">...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" id="detail" style="display:none">
+      <div class="coin" style="margin-bottom:.6rem">
+        <img id="dImg" src="" alt=""/>
+        <div><div class="nm" id="dName">—</div><div class="sy" id="dSym">—</div></div>
+        <div style="margin-left:auto;text-align:right"><div class="pr" id="dPrice">—</div><div id="dCh">—</div></div>
+      </div>
+      <div id="tv" style="height:380px;width:100%"></div>
+      <div class="ex" id="ex" style="margin-top:.6rem"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="trending">В тренде</h2>
+      <div id="trends" class="muted">—</div>
+    </div>
+  </section>
+
+  <section class="page" id="p-port">
+    <div class="card">
+      <h2>Мой портфель (вручную)</h2>
+      <p class="muted" style="margin-bottom:.5rem">Выберите монету кнопкой или поиском → количество → + Добавить. Можно сколько угодно активов.</p>
+      <div class="form">
+        <div class="field" style="grid-column:1/-1">
+          <label>Монета (поиск любой)</label>
+          <input type="text" id="mhQ" placeholder="BTC, ethereum, pepe…" autocomplete="off"/>
+          <input type="hidden" id="mhCoin"/>
+          <div class="sr-box" id="mhSr" style="display:none;position:relative"></div>
+          <div id="mhPicked" class="muted" style="margin-top:.25rem"></div>
+        </div>
+        <div class="field"><label>Количество</label><input type="number" id="mhQty" min="0" step="any" placeholder="0.5"/></div>
+        <div class="field"><label>Цена покупки</label><input type="number" id="mhBuy" min="0" step="any" placeholder="опц."/></div>
+      </div>
+      <button type="button" class="btn" id="mhAdd" style="margin-top:.6rem;width:100%">+ Добавить актив</button>
+      <div id="mhList" style="margin-top:.8rem"></div>
+      <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.6rem">
+        <div class="muted">Итого портфель</div>
+        <div style="font-size:1.4rem;font-weight:700" id="mhVal">$0</div>
+        <div id="mhPnl" class="muted"></div>
+      </div>
+      <div id="portChartWrap" style="display:none;margin-top:.8rem">
+        <canvas id="portChart" width="220" height="220" style="display:block;margin:0 auto"></canvas>
+        <div id="portLegend" style="text-align:center;margin-top:.5rem;font-size:.75rem"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Калькулятор P&L</h2>
+      <div class="form">
+        <div class="field"><label>Монета</label><select id="pnlCoin"></select></div>
+        <div class="field"><label>Дата покупки</label><input type="date" id="pnlDate"/></div>
+        <div class="field"><label>Сумма</label><input type="number" id="pnlAmt" min="0" step="any" placeholder="1000"/></div>
+      </div>
+      <button type="button" class="btn" id="pnlBtn" style="margin-top:.6rem">Рассчитать</button>
+      <div id="pnlBox" class="pnl-box" style="display:none;margin-top:.6rem">
+        <div>Прибыль: <b id="pnlProfit">—</b></div>
+        <div id="pnlPct">—</div>
+      </div>
+      <div id="savedPnl" style="margin-top:.6rem"></div>
+    </div>
+    <div class="card">
+      <h2>С кошелька</h2>
+      <div id="holdList" class="muted">Подключите кошелёк</div>
+    </div>
+  </section>
+
+  <section class="page" id="p-news">
+    <div class="card">
+      <h2>Новости</h2>
+      <div class="tabs" id="newsTabs" style="flex-wrap:wrap;gap:.35rem;margin-bottom:.6rem">
+        <button type="button" class="tab on" data-f="all">Все</button>
+        <button type="button" class="tab" data-f="BTC">Bitcoin</button>
+        <button type="button" class="tab" data-f="ETH">Ethereum</button>
+        <button type="button" class="tab" data-f="SOL">Solana</button>
+        <button type="button" class="tab" data-f="XRP">XRP</button>
+        <button type="button" class="tab" data-f="BNB">BNB</button>
+        <button type="button" class="tab" data-f="DOGE">DOGE</button>
+        <button type="button" class="tab" data-f="ADA">ADA</button>
+        <button type="button" class="tab" data-f="TON">TON</button>
+        <button type="button" class="tab" data-f="market">Рынок</button>
+      </div>
+      <div id="newsList" class="muted">...</div>
+      <div id="outlook" class="muted" style="margin-top:.8rem"></div>
+      <div id="coinOutlook" style="margin-top:.4rem"></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-wallet">
+    <div class="card">
+      <h2>Кошельки</h2>
+      <div class="w-grid" id="wGrid"></div>
+      <div id="wInfo" style="display:none;margin-top:.8rem">
+        <div class="hold-row"><span>Адрес</span><b id="wAddr">—</b></div>
+        <div class="hold-row"><span>Сеть</span><b id="wChain">—</b></div>
+        <div class="hold-row"><span>Баланс</span><b id="wBal">—</b></div>
+        <button type="button" class="btn-ghost" id="wDisc" style="margin-top:.4rem">Отключить</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Адрес вручную</h2>
+      <p class="muted" style="margin-bottom:.5rem">Вставьте адрес любой сети — покажем баланс</p>
+      <div class="form">
+        <div class="field"><label>Сеть</label>
+          <select id="manChain">
+            <option value="eth">Ethereum</option>
+            <option value="bsc">BNB Chain</option>
+            <option value="polygon">Polygon</option>
+            <option value="arb">Arbitrum</option>
+            <option value="op">Optimism</option>
+            <option value="base">Base</option>
+            <option value="sol">Solana</option>
+            <option value="ton">TON</option>
+            <option value="btc">Bitcoin</option>
+          </select>
+        </div>
+        <div class="field" style="grid-column:1/-1"><label>Адрес</label><input type="text" id="manAddr" placeholder="0x… / EQ… / Sol…"/></div>
+      </div>
+      <button type="button" class="btn" id="manBtn" style="margin-top:.6rem;width:100%">Показать баланс</button>
+      <div id="manRes" class="muted" style="margin-top:.6rem"></div>
+    </div>
+  </section>
+
+  <section class="page" id="p-tools">
+    <div class="card">
+      <h2>Fear & Greed</h2>
+      <div id="fgBox" style="text-align:center;padding:1rem 0">
+        <canvas id="fgCanvas" width="160" height="160"></canvas>
+        <div id="fgLabel" style="margin-top:.5rem;font-weight:700">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Конвертер</h2>
+      <div class="form">
+        <div class="field"><label>Сумма</label><input type="number" id="convAmt" value="1" min="0" step="any"/></div>
+        <div class="field"><label>Из</label><select id="convFrom"></select></div>
+        <div class="field"><label>В</label><select id="convTo"></select></div>
+      </div>
+      <div style="margin-top:.6rem;font-weight:700" id="convOut">—</div>
+    </div>
+    <div class="card">
+      <h2>Gas (ETH)</h2>
+      <div id="gasBox" class="muted">Загрузка...</div>
+    </div>
+    <div class="card">
+      <h2>Цель прибыли</h2>
+      <div class="form">
+        <div class="field"><label>Вложено</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000"/></div>
+        <div class="field"><label>Цель %</label><input type="number" id="tpPct" min="0" step="any" value="50"/></div>
+      </div>
+      <div style="margin-top:.6rem;font-weight:700" id="tpOut">—</div>
+    </div>
+    <div class="card">
+      <h2>DCA калькулятор</h2>
+      <div class="form">
+        <div class="field"><label>Сумма/мес</label><input type="number" id="dcaAmt" min="0" step="any" value="100"/></div>
+        <div class="field"><label>Месяцев</label><input type="number" id="dcaMonths" min="1" step="1" value="12"/></div>
+        <div class="field"><label>Ожид. рост %/год</label><input type="number" id="dcaGrowth" step="any" value="20"/></div>
+      </div>
+      <div style="margin-top:.6rem;font-weight:700" id="dcaOut">—</div>
+    </div>
+    <div class="card">
+      <h2>Доминация</h2>
+      <div id="domList" class="muted">—</div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js?v=53"></script>
+<script src="fix.js?v=53"></script>
+</body>
+</html>
