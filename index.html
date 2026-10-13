@@ -2,124 +2,152 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="theme-color" content="#0a0a0f"/>
 <title>Crypto Tracker</title>
 <link rel="manifest" href="manifest.json"/>
 <script src="https://s3.tradingview.com/tv.js"></script>
-<style>
-:root{--bg:#0b0e11;--card:#151a21;--card-hover:#1c232d;--border:#2a3340;--text:#eaecef;--muted:#848e9c;--green:#0ecb81;--red:#f6465d;--accent:#f0b90b}
-.light{--bg:#f6f7f9;--card:#fff;--card-hover:#f0f2f5;--border:#e6e9ef;--text:#0b0e11;--muted:#6b7280;--green:#0a9f5a;--red:#d23b4a;--accent:#b86b00}
-*{box-sizing:border-box;margin:0;padding:0}body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.5;min-height:100vh}a{color:var(--accent);text-decoration:none}
-header{background:var(--card);border-bottom:1px solid var(--border);padding:.75rem 1rem;display:flex;justify-content:space-between;align-items:center;gap:.6rem;flex-wrap:wrap;position:sticky;top:0;z-index:40}
-.logo{font-weight:700;font-size:1.05rem;display:flex;align-items:center;gap:.4rem}.logo span{color:var(--accent)}
-.global-stats{display:flex;gap:.7rem;flex-wrap:wrap;color:var(--muted);font-size:.7rem}.global-stats strong{color:var(--text)}
-.controls{display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
-.select,.toggle-btn,.wallet-btn{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:6px 8px;border-radius:6px;cursor:pointer;font-size:.78rem}
-.wallet-btn{background:var(--accent);color:#000;border:none;font-weight:600}.wallet-btn.connected{background:var(--green)}
-.container{max-width:1280px;margin:0 auto;padding:.9rem 1rem 2rem}
-.search-bar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;align-items:center}
-.search-wrap{position:relative;flex:1;min-width:160px}
-.search-bar input{width:100%;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:.6rem .8rem;font-size:.9rem;outline:none}
-.search-bar input:focus{border-color:var(--accent)}
-.btn{background:var(--accent);color:#000;border:none;border-radius:8px;padding:.6rem .9rem;font-weight:600;cursor:pointer;font-size:.85rem}.btn:disabled{opacity:.55}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text)}
-.grid{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:1rem}@media(max-width:900px){.grid{grid-template-columns:1fr}}
-.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.95rem}
-.card h2{display:flex;align-items:center;justify-content:space-between;gap:.4rem;font-size:.9rem;margin-bottom:.7rem}
-.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;font-size:.8rem}
-th,td{padding:.55rem .35rem;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap}th{color:var(--muted);font-weight:500}
-tr:hover td{background:var(--card-hover);cursor:pointer}tr.selected td{background:rgba(240,185,11,.1)}
-.coin-cell{display:flex;align-items:center;gap:.45rem}.coin-cell img{width:22px;height:22px;border-radius:50%}
-.coin-name{font-weight:600}.coin-symbol{color:var(--muted);font-size:.68rem;text-transform:uppercase}
-.price{font-weight:700}.change-up{color:var(--green)}.change-down{color:var(--red)}
-.remove-btn{background:none;border:none;color:var(--muted);font-size:1.1rem;cursor:pointer}
-.detail-header{display:flex;align-items:center;gap:.6rem;margin-bottom:.5rem}.detail-header img{width:34px;height:34px;border-radius:50%}
-.detail-price{font-size:1.45rem;font-weight:700;margin:.1rem 0}
-.tv-wrap{height:380px;width:100%;margin:.6rem 0;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
-.exchanges{display:flex;flex-wrap:wrap;gap:.3rem}
-.ex-link{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:.3rem .55rem;font-size:.72rem;color:var(--text)}
-.search-results{position:absolute;background:var(--card);border:1px solid var(--border);border-radius:8px;max-height:300px;overflow-y:auto;width:min(400px,92vw);z-index:50;margin-top:.15rem;box-shadow:0 8px 24px rgba(0,0,0,.4)}
-.sr-item{padding:.5rem .8rem;display:flex;align-items:center;gap:.45rem;cursor:pointer;border-bottom:1px solid var(--border)}.sr-item:hover{background:var(--card-hover)}.sr-item img{width:20px;height:20px;border-radius:50%}
-.sr-meta{flex:1;min-width:0}.sr-name{font-weight:600;font-size:.82rem}.sr-sym{color:var(--muted);font-size:.7rem}.sr-empty{padding:.8rem;color:var(--muted);text-align:center}
-.trending-list,.news-list{list-style:none}.trending-list li,.news-list li{padding:.5rem 0;border-bottom:1px solid var(--border);font-size:.82rem}
-.trending-item{display:flex;align-items:center;gap:.45rem;cursor:pointer}.trending-item img{width:20px;height:20px;border-radius:50%}
-.rank{color:var(--muted);font-size:.68rem;min-width:1rem}.top-price{margin-left:auto;font-size:.75rem;font-weight:600}
-.loading,.empty{color:var(--muted);text-align:center;padding:1rem;font-size:.85rem}
-.attribution{text-align:center;color:var(--muted);font-size:.68rem;margin-top:1.2rem}
-.toast{position:fixed;left:50%;bottom:1.1rem;transform:translateX(-50%);background:var(--card);border:1px solid var(--border);color:var(--text);padding:.6rem 1rem;border-radius:8px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:200;max-width:90vw;text-align:center;font-size:.82rem}.toast.show{opacity:1}
-.tab-btn{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:6px;padding:.25rem .55rem;font-size:.72rem;cursor:pointer}.tab-btn.active{border-color:var(--accent);color:var(--accent)}
-.wallet-panel{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:.95rem;margin-bottom:1rem}.wallet-panel h2{font-size:.9rem;margin-bottom:.6rem}
-.wallet-addr{font-family:ui-monospace,monospace;font-size:.75rem;color:var(--muted);word-break:break-all}
-.wallet-bal{font-size:1.2rem;font-weight:700;margin:.35rem 0}.wallet-chain{font-size:.75rem;color:var(--muted)}
-.wallet-tokens{margin-top:.6rem;font-size:.8rem}.wallet-tokens div{display:flex;justify-content:space-between;padding:.35rem 0;border-bottom:1px solid var(--border)}
-</style>
+<link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-<header>
-<div class="logo"><span>₿</span> <span data-i18n="appTitle">Crypto Tracker</span></div>
-<div class="controls">
-<div class="global-stats" id="globalStats"><span data-i18n="loading">Загрузка...</span></div>
-<select id="langSelect" class="select"><option value="ru">RU</option><option value="en">EN</option><option value="pl">PL</option></select>
-<select id="currencySelect" class="select"><option value="usd">USD $</option><option value="eur">EUR €</option><option value="rub">RUB ₽</option><option value="pln">PLN zł</option><option value="uah">UAH ₴</option></select>
-<button id="themeToggle" class="toggle-btn" type="button">Dark</button>
-<button id="walletBtn" class="wallet-btn" type="button" data-i18n="connectWallet">Кошелёк</button>
-</div>
+<header class="topbar">
+  <div class="logo"><i>₿</i> Crypto Tracker</div>
+  <div class="top-actions">
+    <span class="chip" id="mcapChip">Cap: —</span>
+    <span class="chip" id="domChip">BTC: —</span>
+    <select id="currencySelect" class="select">
+      <option value="usd">USD</option><option value="eur">EUR</option>
+      <option value="rub">RUB</option><option value="pln">PLN</option><option value="uah">UAH</option>
+    </select>
+    <select id="langSelect" class="select">
+      <option value="ru">RU</option><option value="en">EN</option>
+    </select>
+    <button type="button" class="select" id="themeBtn">Dark</button>
+  </div>
 </header>
-<div class="container">
-<div class="search-bar">
-<div class="search-wrap">
-<input id="searchInput" type="text" data-i18n-placeholder="searchPh" placeholder="Поиск: BTC, ETH..." autocomplete="off"/>
-<div id="searchResults" class="search-results" style="display:none"></div>
+
+<nav class="bottom-nav" id="mainNav">
+  <button type="button" class="nav-btn active" data-page="home"><span class="ico">🏠</span><span data-i18n="navHome">Главная</span></button>
+  <button type="button" class="nav-btn" data-page="portfolio"><span class="ico">📊</span><span data-i18n="navPort">Портфель</span></button>
+  <button type="button" class="nav-btn" data-page="wallet"><span class="ico">👛</span><span data-i18n="navWallet">Кошелёк</span></button>
+  <button type="button" class="nav-btn" data-page="tools"><span class="ico">🛠</span><span data-i18n="navTools">Инструменты</span></button>
+</nav>
+
+<div class="wrap">
+  <section class="page active" id="page-home">
+    <div class="stats-row">
+      <div class="stat">24h <b id="stat24">—</b></div>
+      <div class="stat">Fear & Greed <b id="statFG">—</b></div>
+    </div>
+    <div class="search-row">
+      <div class="search-wrap">
+        <input id="searchInput" type="search" placeholder="Поиск монеты..." autocomplete="off"/>
+        <div class="sr-box" id="searchResults" style="display:none"></div>
+      </div>
+      <button type="button" class="btn" id="refreshBtn">↻</button>
+    </div>
+    <div class="card">
+      <h2><span data-i18n="myCoins">Мои монеты</span>
+        <button type="button" class="btn-ghost" id="addPopBtn" style="padding:.3rem .6rem;font-size:.72rem">+ Top</button>
+      </h2>
+      <div class="table-scroll">
+        <table>
+          <thead><tr><th>#</th><th data-i18n="coin">Монета</th><th data-i18n="price">Цена</th><th>24h</th><th></th></tr></thead>
+          <tbody id="watchBody"><tr><td colspan="5" class="empty">...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" id="detailCard" style="display:none">
+      <div class="detail-head">
+        <img id="dImg" alt=""/>
+        <div><div class="cname" id="dName"></div><div class="csym" id="dSym"></div></div>
+      </div>
+      <div class="detail-price" id="dPrice">—</div>
+      <div id="dChange" class="muted" style="margin-bottom:.4rem"></div>
+      <div class="tv-box" id="tvChart"></div>
+      <h3 data-i18n="exchanges">Биржи</h3>
+      <div class="ex-row" id="exRow"></div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="trending">🔥 Тренды</h2>
+      <div id="trendList" class="empty">...</div>
+    </div>
+  </section>
+
+  <section class="page" id="page-portfolio">
+    <div class="card">
+      <h2 data-i18n="pnlTitle">Калькулятор прибыли / убытка</h2>
+      <p class="muted" style="margin-bottom:.8rem" data-i18n="pnlHint">Укажите монету, дату покупки и сумму.</p>
+      <div class="form-grid">
+        <div class="field"><label data-i18n="coin">Монета</label><select id="pnlCoin"></select></div>
+        <div class="field"><label data-i18n="buyDate">Дата покупки</label><input type="date" id="pnlDate"/></div>
+        <div class="field"><label data-i18n="investType">Тип</label>
+          <select id="pnlMode"><option value="fiat">Сумма</option><option value="qty">Количество</option></select>
+        </div>
+        <div class="field"><label id="pnlAmountLabel">Сумма</label><input type="number" id="pnlAmount" min="0" step="any" placeholder="1000"/></div>
+      </div>
+      <button type="button" class="btn" id="pnlCalcBtn" style="margin-top:.85rem;width:100%" data-i18n="calculate">Рассчитать</button>
+      <div class="pnl-result" id="pnlResult" style="display:none">
+        <div class="muted" data-i18n="result">Результат</div>
+        <div class="pnl-big" id="pnlProfit">—</div>
+        <div id="pnlPct" class="muted"></div>
+        <div class="pnl-grid">
+          <div><span data-i18n="buyPrice">Цена покупки</span><b id="pnlBuyPrice">—</b></div>
+          <div><span data-i18n="nowPrice">Сейчас</span><b id="pnlNowPrice">—</b></div>
+          <div><span data-i18n="invested">Вложено</span><b id="pnlInvested">—</b></div>
+          <div><span data-i18n="nowValue">Стоит</span><b id="pnlNowValue">—</b></div>
+          <div><span data-i18n="qty">Кол-во</span><b id="pnlQty">—</b></div>
+          <div><span data-i18n="daysHeld">Дней</span><b id="pnlDays">—</b></div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="savedCalcs">Сохранённые</h2>
+      <div id="savedPnL" class="empty" data-i18n="noSaved">Пусто</div>
+    </div>
+  </section>
+
+  <section class="page" id="page-wallet">
+    <div class="card">
+      <h2 data-i18n="connectTitle">Кошельки</h2>
+      <p class="muted" style="margin-bottom:.75rem" data-i18n="walletHint">MetaMask, Trust, Coinbase, Rabby, Brave, Phantom…</p>
+      <div class="wallet-grid" id="walletGrid"></div>
+      <div class="wallet-info" id="walletInfo" style="display:none">
+        <div class="addr" id="wAddr"></div>
+        <div class="muted" id="wChain" style="margin:.35rem 0"></div>
+        <div style="font-size:1.35rem;font-weight:800" id="wBal">—</div>
+        <button type="button" class="btn-danger" id="wDisconnect" style="margin-top:.7rem" data-i18n="disconnect">Отключить</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2 data-i18n="manualAddr">Адрес 0x</h2>
+      <div class="field"><input type="text" id="manualAddr" placeholder="0x..."/></div>
+      <button type="button" class="btn-ghost" id="lookupAddr" style="margin-top:.55rem" data-i18n="lookup">ETH баланс</button>
+      <div id="manualResult" class="muted" style="margin-top:.5rem"></div>
+    </div>
+  </section>
+
+  <section class="page" id="page-tools">
+    <div class="card">
+      <h2 data-i18n="converter">Конвертер</h2>
+      <div class="tool-row">
+        <div class="field"><label>From</label><input type="number" id="convAmt" value="1" min="0" step="any"/></div>
+        <div class="field"><label>Coin</label><select id="convFrom"></select></div>
+        <div class="field"><label>To</label>
+          <select id="convTo"><option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option><option value="btc">BTC</option></select>
+        </div>
+      </div>
+      <div style="margin-top:.8rem;font-size:1.3rem;font-weight:800" id="convOut">—</div>
+    </div>
+    <div class="card">
+      <h2>Fear & Greed</h2>
+      <div class="fg-label" id="fgValue">—</div>
+      <div class="muted" style="text-align:center" id="fgClass"></div>
+      <div class="fg-meter"><div class="fg-needle" id="fgNeedle" style="left:50%"></div></div>
+    </div>
+  </section>
 </div>
-<button id="refreshBtn" class="btn" type="button" data-i18n="refresh">Обновить</button>
-</div>
-<div id="walletPanel" class="wallet-panel" style="display:none">
-<h2 data-i18n="walletTitle">Кошелёк</h2>
-<div class="wallet-addr" id="walletAddr"></div>
-<div class="wallet-chain" id="walletChain"></div>
-<div class="wallet-bal" id="walletBal">—</div>
-<div class="wallet-tokens" id="walletTokens"></div>
-<button type="button" class="btn-outline select" id="walletDisconnect" style="margin-top:.5rem" data-i18n="disconnect">Отключить</button>
-</div>
-<div class="grid">
-<div>
-<div class="card" style="margin-bottom:1rem">
-<h2><span data-i18n="myCoins">Мои монеты</span>
-<button class="btn btn-outline" type="button" id="addPopularBtn" style="padding:.25rem .5rem;font-size:.72rem" data-i18n="addPopular">+Популярные</button></h2>
-<div class="table-wrap"><table><thead><tr><th>#</th><th data-i18n="coin">Монета</th><th data-i18n="price">Цена</th><th>24h</th><th>7d</th><th></th></tr></thead>
-<tbody id="watchlistBody"><tr><td colspan="6" class="loading" data-i18n="loading">Загрузка...</td></tr></tbody></table></div>
-</div>
-<div class="card" id="detailCard" style="display:none">
-<div class="detail-header"><img id="detailImg" src="" alt=""/><div><div style="font-weight:600" id="detailName"></div><div class="coin-symbol" id="detailSymbol"></div></div></div>
-<div class="detail-price" id="detailPrice">—</div>
-<div id="detailChange" style="font-size:.85rem;margin-bottom:.3rem"></div>
-<div class="tv-wrap" id="tvChart"></div>
-<h2 style="margin-top:.3rem" data-i18n="exchanges">Биржи</h2>
-<div id="exchanges" class="exchanges"></div>
-</div>
-</div>
-<div>
-<div class="card" style="margin-bottom:1rem">
-<h2><span id="sideTitle" data-i18n="trending">🔥 Тренды</span></h2>
-<div style="display:flex;gap:.3rem;margin-bottom:.6rem">
-<button id="tabTrending" type="button" class="tab-btn active" data-i18n="trendingTab">Тренды</button>
-<button id="tabTop" type="button" class="tab-btn" data-i18n="topTab">Топ-50</button>
-</div>
-<ul id="sideList" class="trending-list"><li class="loading" data-i18n="loading">Загрузка...</li></ul>
-</div>
-<div class="card"><h2 data-i18n="news">📰 Новости</h2>
-<ul class="news-list">
-<li><a href="https://www.coindesk.com/" target="_blank" rel="noopener">CoinDesk</a></li>
-<li><a href="https://cointelegraph.com/" target="_blank" rel="noopener">Cointelegraph</a></li>
-<li><a href="https://www.theblock.co/" target="_blank" rel="noopener">The Block</a></li>
-<li><a href="https://decrypt.co/" target="_blank" rel="noopener">Decrypt</a></li>
-<li><a href="https://cryptopanic.com/" target="_blank" rel="noopener">CryptoPanic</a></li>
-</ul></div>
-</div>
-</div>
-<p class="attribution">Data by <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a> · Charts by <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a> · <span data-i18n="notAdvice">Не финансовый совет</span> · <a href="https://github.com/0xvilya/crypto-tracker" target="_blank">GitHub</a></p>
-</div>
-<div id="toast" class="toast"></div>
+<div class="toast" id="toast"></div>
 <script src="app.js"></script>
 </body>
 </html>
