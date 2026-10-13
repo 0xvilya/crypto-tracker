@@ -84,7 +84,23 @@
       <div id="holdings" class="empty">Подключите кошелёк на вкладке «Кошелёк»</div>
     </div>
     <div class="card">
-      <h2>Калькулятор P&L</h2>
+      <h2>Мой портфель (вручную)</h2>
+      <p class="muted" style="margin-bottom:.6rem">Добавьте монеты, которые держите — сумма и P&amp;L посчитаются автоматически</p>
+      <div class="form">
+        <div class="field"><label>Монета</label><select id="mhCoin"></select></div>
+        <div class="field"><label>Количество</label><input type="number" id="mhQty" min="0" step="any" placeholder="0.5"/></div>
+        <div class="field"><label>Цена покупки</label><input type="number" id="mhBuy" min="0" step="any" placeholder="опц."/></div>
+      </div>
+      <button type="button" class="btn" id="mhAdd" style="width:100%;margin-top:.6rem">Добавить</button>
+      <div id="mhList" class="empty" style="margin-top:.75rem">Пусто</div>
+      <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.75rem">
+        <div class="muted">Итого портфель</div>
+        <div class="pnl-big" id="mhVal">—</div>
+        <div id="mhPnl" class="muted"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Калькулятор P&amp;L</h2>
       <p class="muted" style="margin-bottom:.7rem">Дата покупки + сумма → прибыль или убыток</p>
       <div class="form">
         <div class="field"><label>Монета</label><select id="pnlCoin"></select></div>
@@ -114,27 +130,31 @@
 
   <section class="page" id="p-news">
     <div class="card">
-      <h2>Новости</h2>
+      <h2>Крипто-новости</h2>
       <div class="tabs" id="newsTabs">
         <button type="button" class="tab on" data-f="all">Все</button>
         <button type="button" class="tab" data-f="BTC">Bitcoin</button>
         <button type="button" class="tab" data-f="ETH">Ethereum</button>
         <button type="button" class="tab" data-f="SOL">Solana</button>
         <button type="button" class="tab" data-f="XRP">XRP</button>
+        <button type="button" class="tab" data-f="BNB">BNB</button>
+        <button type="button" class="tab" data-f="DOGE">DOGE</button>
+        <button type="button" class="tab" data-f="ADA">ADA</button>
         <button type="button" class="tab" data-f="market">Рынок</button>
       </div>
       <div id="newsList" class="empty">Загрузка...</div>
     </div>
     <div class="card">
-      <h2>Что может произойти</h2>
-      <p class="muted" style="font-size:.82rem;line-height:1.55" id="outlook">Аналитика появится после загрузки ленты.</p>
+      <h2>Что может произойти с валютой</h2>
+      <p class="muted" style="font-size:.82rem;line-height:1.55" id="outlook">Аналитика появится после загрузки ленты. Не финансовый совет.</p>
+      <div id="coinOutlook" style="margin-top:.75rem"></div>
     </div>
   </section>
 
   <section class="page" id="p-wallet">
     <div class="card">
       <h2>Подключить кошелёк</h2>
-      <p class="muted" style="margin-bottom:.7rem">Откроется приложение → подтвердите доступ. Баланс появится в «Портфель».</p>
+      <p class="muted" style="margin-bottom:.7rem">Нажмите → откроется приложение кошелька → разрешите доступ. Баланс появится здесь и во вкладке «Портфель». Если уже в браузере кошелька — подключение сразу.</p>
       <div class="w-grid" id="wGrid"></div>
       <div id="wInfo" style="display:none;margin-top:.85rem">
         <div class="muted" style="font-family:monospace;font-size:.75rem;word-break:break-all" id="wAddr"></div>
@@ -164,12 +184,35 @@
       <div style="margin-top:.75rem;font-size:1.25rem;font-weight:800" id="cOut">—</div>
     </div>
     <div class="card">
-      <h2>Fear & Greed</h2>
+      <h2>Fear &amp; Greed</h2>
       <div style="text-align:center;font-size:1.5rem;font-weight:800" id="fgV">—</div>
       <div class="muted" style="text-align:center" id="fgC"></div>
       <div style="height:10px;border-radius:99px;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e);margin:1rem 0 .4rem;position:relative">
         <div id="fgN" style="position:absolute;top:-3px;width:4px;height:16px;background:#fff;border-radius:2px;left:50%;transform:translateX(-50%)"></div>
       </div>
+    </div>
+    <div class="card">
+      <h2>Gas (Ethereum)</h2>
+      <div id="gasBox" class="muted">Загрузка...</div>
+    </div>
+    <div class="card">
+      <h2>Цель прибыли</h2>
+      <p class="muted" style="margin-bottom:.5rem">Сколько нужно, чтобы получить нужный %</p>
+      <div class="form">
+        <div class="field"><label>Вложено</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000"/></div>
+        <div class="field"><label>Цель %</label><input type="number" id="tpPct" min="0" step="any" value="50" placeholder="50"/></div>
+      </div>
+      <div style="margin-top:.6rem;font-weight:700" id="tpOut">—</div>
+    </div>
+    <div class="card">
+      <h2>DCA калькулятор</h2>
+      <p class="muted" style="margin-bottom:.5rem">Сколько накопится при регулярных покупках</p>
+      <div class="form">
+        <div class="field"><label>Сумма/мес</label><input type="number" id="dcaAmt" min="0" step="any" value="100"/></div>
+        <div class="field"><label>Месяцев</label><input type="number" id="dcaMonths" min="1" step="1" value="12"/></div>
+        <div class="field"><label>Ожид. рост %/год</label><input type="number" id="dcaGrowth" step="any" value="20"/></div>
+      </div>
+      <div style="margin-top:.6rem;font-weight:700" id="dcaOut">—</div>
     </div>
     <div class="card">
       <h2>Доминация</h2>
@@ -181,7 +224,11 @@
         <a href="https://www.coingecko.com/" target="_blank" rel="noopener">CoinGecko</a>
         <a href="https://www.tradingview.com/markets/cryptocurrencies/" target="_blank" rel="noopener">TradingView</a>
         <a href="https://defillama.com/" target="_blank" rel="noopener">DefiLlama</a>
-        <a href="https://etherscan.io/" target="_blank" rel="noopener">Etherscan</a>
+        <a href="https://etherscan.io/gastracker" target="_blank" rel="noopener">Gas Tracker</a>
+        <a href="https://www.coinglass.com/" target="_blank" rel="noopener">CoinGlass</a>
+        <a href="https://dune.com/" target="_blank" rel="noopener">Dune</a>
+        <a href="https://messari.io/" target="_blank" rel="noopener">Messari</a>
+        <a href="https://coinmarketcap.com/charts/" target="_blank" rel="noopener">Heatmap</a>
       </div>
     </div>
   </section>
