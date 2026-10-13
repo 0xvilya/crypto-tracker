@@ -32,6 +32,7 @@
 
   var list = JSON.parse(localStorage.getItem('ct_wl') || 'null') || DEFAULTS.slice();
   var savedPnL = JSON.parse(localStorage.getItem('ct_pnl') || '[]');
+  var manualHold = JSON.parse(localStorage.getItem('ct_mh') || '[]');
   var selected = null, lastFetch = 0, account = null, provider = null;
   var newsCache = [];
   var newsFilter = 'all';
@@ -95,9 +96,9 @@
     document.querySelectorAll('.page').forEach(function (el) { el.classList.toggle('on', el.id === 'p-' + p); });
     document.querySelectorAll('.nav-btn').forEach(function (b) { b.classList.toggle('on', b.getAttribute('data-p') === p); });
     if (p === 'news') loadNews();
-    if (p === 'port') { fillPnlCoins(); renderHoldings(); }
+    if (p === 'port') { fillPnlCoins(); fillMhCoins(); renderHoldings(); renderManual(); }
     if (p === 'wallet') renderWallets();
-    if (p === 'tools') { loadFG(); renderDom(); }
+    if (p === 'tools') { loadFG(); renderDom(); loadGas(); calcTP(); calcDCA(); }
   }
   var nav = $('nav');
   if (nav) nav.addEventListener('click', function (e) {
@@ -234,7 +235,7 @@
       api(API + '/search?query=' + encodeURIComponent(q), 2).then(function (d) {
         var coins = (d.coins || []).slice(0, 12);
         box.innerHTML = coins.map(function (c) {
-          return '<div class="sr-item" data-id="' + c.id + '" data-name="' + String(c.name).replace(/"/g, '') + '"><img src="' + (c.thumb || '') + '" alt=""/><div><div class="nm">' + c.name + '</div><div class="sy">' + (c.symbol || '') + '</div></div></div>';
+          return '<div class="sr-item" data-id="' + c.id + '" data-name="' + String(c.name).replace(/\"/g, '') + '"><img src="' + (c.thumb || '') + '" alt=""/><div><div class="nm">' + c.name + '</div><div class="sy">' + (c.symbol || '') + '</div></div></div>';
         }).join('') || '<div class="empty">\u2014</div>';
       }).catch(function () { box.innerHTML = '<div class="empty">Error</div>'; });
     }, 320);
@@ -313,11 +314,21 @@
   }
   function renderNews() {
     var f = newsFilter;
+    var KW = {
+      BTC: /bitcoin|\bbtc\b|sats/i,
+      ETH: /ethereum|\beth\b|vitalik/i,
+      SOL: /solana|\bsol\b/i,
+      XRP: /\bxrp\b|ripple/i,
+      BNB: /\bbnb\b|binance coin/i,
+      DOGE: /dogecoin|\bdoge\b/i,
+      ADA: /cardano|\bada\b/i,
+      market: /market|crypto market|regulation|sec|etf|fed|inflation/i
+    };
     var items = newsCache.filter(function (n) {
       if (f === 'all') return true;
-      var t = (n.title + ' ' + n.desc).toUpperCase();
-      if (f === 'market') return /MARKET|CRYPTO|FED|ETF|REGULATION|SEC|RATE/.test(t);
-      return t.indexOf(f) !== -1;
+      var t = (n.title + ' ' + (n.desc || ''));
+      var re = KW[f];
+      return re ? re.test(t) : true;
     });
     var box = $('newsList');
     if (!box) return;
@@ -330,15 +341,33 @@
     updateOutlook(items);
   }
   function updateOutlook(items) {
-    var text = items.map(function (n) { return n.title; }).join(' ').toLowerCase();
-    var bull = (text.match(/surge|rally|soar|record|approve|etf|bull|\u0440\u043e\u0441\u0442|\u0440\u0430\u043b\u043b\u0438|\u0440\u0435\u043a\u043e\u0440\u0434/g) || []).length;
-    var bear = (text.match(/crash|drop|ban|hack|lawsuit|bear|\u043f\u0430\u0434\u0435\u043d\u0438\u0435|\u0437\u0430\u043f\u0440\u0435\u0442|\u0445\u0430\u043a|\u0438\u0441\u043a/g) || []).length;
+    var text = items.map(function (n) { return n.title + ' ' + (n.desc || ''); }).join(' ').toLowerCase();
+    var bull = (text.match(/surge|rally|soar|record|approve|etf|bull|growth|\u0440\u043e\u0441\u0442|\u0440\u0430\u043b\u043b\u0438/g) || []).length;
+    var bear = (text.match(/crash|drop|ban|hack|lawsuit|bear|sec|\u043f\u0430\u0434\u0435\u043d\u0438\u0435|\u0437\u0430\u043f\u0440\u0435\u0442/g) || []).length;
     var msg;
-    if (bull > bear + 2) msg = '\ud83d\udcf0 News tone is rather positive (growth/ETF mentions). Not financial advice.';
-    else if (bear > bull + 2) msg = '\ud83d\udcf0 News tone is cautious/negative (risks/regulation). Watch volatility.';
-    else msg = '\ud83d\udcf0 Mixed news tone. Market can move either way.';
+    if (bull > bear + 2) msg = '\ud83d\udcf0 \u0422\u043e\u043d \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439 \u0441\u043a\u043e\u0440\u0435\u0435 \u043f\u043e\u0437\u0438\u0442\u0438\u0432\u043d\u044b\u0439 (\u0440\u043e\u0441\u0442/ETF). \u041d\u0435 \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u044b\u0439 \u0441\u043e\u0432\u0435\u0442.';
+    else if (bear > bull + 2) msg = '\ud83d\udcf0 \u0422\u043e\u043d \u043e\u0441\u0442\u043e\u0440\u043e\u0436\u043d\u044b\u0439/\u043d\u0435\u0433\u0430\u0442\u0438\u0432\u043d\u044b\u0439. \u0421\u043b\u0435\u0434\u0438\u0442\u0435 \u0437\u0430 \u0432\u043e\u043b\u0430\u0442\u0438\u043b\u044c\u043d\u043e\u0441\u0442\u044c\u044e.';
+    else msg = '\ud83d\udcf0 \u0421\u043c\u0435\u0448\u0430\u043d\u043d\u044b\u0439 \u0442\u043e\u043d. \u0420\u044b\u043d\u043e\u043a \u043c\u043e\u0436\u0435\u0442 \u043f\u043e\u0439\u0442\u0438 \u0432 \u043b\u044e\u0431\u0443\u044e \u0441\u0442\u043e\u0440\u043e\u043d\u0443.';
     var ol = $('outlook');
     if (ol) ol.textContent = msg;
+    var coins = [
+      { re: /bitcoin|\bbtc\b/i, name: 'Bitcoin' },
+      { re: /ethereum|\beth\b/i, name: 'Ethereum' },
+      { re: /solana|\bsol\b/i, name: 'Solana' },
+      { re: /\bxrp\b|ripple/i, name: 'XRP' }
+    ];
+    var box = $('coinOutlook');
+    if (!box) return;
+    var html = coins.map(function (c) {
+      var related = items.filter(function (n) { return c.re.test(n.title + ' ' + (n.desc || '')); });
+      if (!related.length) return '';
+      var t = related.map(function (n) { return n.title; }).join(' ').toLowerCase();
+      var b = (t.match(/surge|rally|soar|record|approve|etf|bull|growth/g) || []).length;
+      var be = (t.match(/crash|drop|ban|hack|lawsuit|bear|sec/g) || []).length;
+      var tone = b > be + 1 ? '\u0441\u043a\u043e\u0440\u0435\u0435 \u0440\u043e\u0441\u0442' : (be > b + 1 ? '\u0434\u0430\u0432\u043b\u0435\u043d\u0438\u0435 / \u0440\u0438\u0441\u043a\u0438' : '\u043d\u0435\u0439\u0442\u0440\u0430\u043b\u044c\u043d\u043e');
+      return '<div class="hold-row"><b>' + c.name + '</b><span class="muted">' + related.length + ' \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439 \u00b7 ' + tone + '</span></div>';
+    }).filter(Boolean).join('');
+    box.innerHTML = html || '<div class="muted">\u041c\u0430\u043b\u043e \u0443\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u0439 \u043e\u0442\u0434\u0435\u043b\u044c\u043d\u044b\u0445 \u043c\u043e\u043d\u0435\u0442.</div>';
   }
   var nt = $('newsTabs');
   if (nt) nt.addEventListener('click', function (e) {
@@ -392,13 +421,13 @@
       var nowCoin = cacheGet('coin_' + currency + '_' + id);
       if (!nowCoin) {
         var md = await api(API + '/coins/markets?vs_currency=' + currency + '&ids=' + encodeURIComponent(id));
-        nowCoin = md[0];
-        cacheSet('coin_' + currency + '_' + id, nowCoin);
+        nowCoin = md && md[0];
       }
+      if (!nowCoin) throw new Error('no now');
       var nowPrice = nowCoin.current_price;
       var qty, invested;
       if (mode === 'qty') { qty = amount; invested = qty * buyPrice; }
-      else { invested = amount; qty = invested / buyPrice; }
+      else { invested = amount; qty = amount / buyPrice; }
       var nowValue = qty * nowPrice;
       var profit = nowValue - invested;
       var profitPct = (profit / invested) * 100;
@@ -477,6 +506,7 @@
     return window.ethereum || null;
   }
   async function connectWallet(wid) {
+    localStorage.setItem('ct_pending_w', wid || '');
     var w = WALLETS.find(function (x) { return x.id === wid; });
     provider = getProvider(wid);
     if (!provider && w && w.deep) {
@@ -491,6 +521,7 @@
         account = res.publicKey.toString();
         provider = { type: 'sol' };
         showWallet(account, 'Solana', '\u2014');
+        localStorage.removeItem('ct_pending_w');
         toast('Phantom connected');
         return;
       } catch (e) { toast(e.message || 'Error'); return; }
@@ -508,6 +539,7 @@
       var eth = parseInt(balHex, 16) / 1e18;
       showWallet(account, CHAINS[chainId] || chainId, eth.toFixed(6) + ' native');
       localStorage.setItem('ct_wallet', account);
+      localStorage.removeItem('ct_pending_w');
       toast('Connected \u2014 see Portfolio');
       if (provider.on) {
         provider.on('accountsChanged', function (a) {
@@ -618,13 +650,95 @@
   function renderDom() {
     var d = window._domData || {};
     var keys = Object.keys(d).slice(0, 6);
-    var el = $('domList');
-    if (!el) return;
-    if (!keys.length) { el.textContent = '\u2014'; return; }
-    el.innerHTML = keys.map(function (k) {
+    var box = $('domList');
+    if (!box) return;
+    box.innerHTML = keys.map(function (k) {
       return '<div class="hold-row"><span>' + k.toUpperCase() + '</span><b>' + (+d[k]).toFixed(2) + '%</b></div>';
     }).join('');
   }
+
+  document.addEventListener('visibilitychange', function () {
+    if (document.visibilityState === 'visible') {
+      tryAutoConnect();
+      var pend = localStorage.getItem('ct_pending_w');
+      if (pend && window.ethereum && !account) setTimeout(function () { connectWallet(pend); }, 600);
+    }
+  });
+  window.addEventListener('focus', function () { tryAutoConnect(); });
+  function fillMhCoins() {
+    var sel = $('mhCoin'); if (!sel) return;
+    var opts = list.slice();
+    DEFAULTS.forEach(function (id) { if (opts.indexOf(id) < 0) opts.push(id); });
+    sel.innerHTML = opts.map(function (id) {
+      var c = cacheGet('coin_' + currency + '_' + id);
+      return '<option value="' + id + '">' + (c ? c.symbol.toUpperCase() + ' — ' + c.name : id) + '</option>';
+    }).join('');
+  }
+  function renderManual() {
+    var box = $('mhList'), tot = $('mhTotal'); if (!box) return;
+    if (!manualHold.length) { box.innerHTML = '<div class="empty">Пусто</div>'; if (tot) tot.style.display = 'none'; return; }
+    var totalVal = 0, totalCost = 0;
+    box.innerHTML = manualHold.map(function (h, i) {
+      var c = cacheGet('coin_' + currency + '_' + h.id);
+      var price = c ? c.current_price : 0, val = price * h.qty;
+      totalVal += val; var cost = (h.buy || 0) * h.qty; totalCost += cost;
+      var pnl = cost > 0 ? val - cost : null, sym = c ? c.symbol.toUpperCase() : h.id;
+      return '<div class="hold-row"><div><b>' + sym + '</b><div class="muted">' + h.qty + ' · ' + (price ? fmt(price) : '—') + '</div></div><div style="text-align:right"><b>' + (price ? fmt(val) : '—') + '</b>' +
+        (pnl != null ? '<div class="' + (pnl >= 0 ? 'up' : 'down') + '">' + (pnl >= 0 ? '+' : '') + fmt(pnl) + '</div>' : '') +
+        '<button type="button" class="btn-ghost mh-rm" data-i="' + i + '" style="font-size:.65rem;padding:.15rem .4rem">✕</button></div></div>';
+    }).join('');
+    if (tot) {
+      tot.style.display = 'block'; $('mhVal').textContent = fmt(totalVal);
+      var mp = $('mhPnl');
+      if (totalCost > 0) { var d = totalVal - totalCost; mp.textContent = (d >= 0 ? '+' : '') + fmt(d) + ' (' + pct((d / totalCost) * 100) + ')'; mp.className = d >= 0 ? 'up' : 'down'; }
+      else { mp.textContent = 'Без цены покупки'; mp.className = 'muted'; }
+    }
+  }
+  var mhAdd = $('mhAdd');
+  if (mhAdd) mhAdd.addEventListener('click', function () {
+    var id = $('mhCoin').value, qty = parseFloat($('mhQty').value), buy = parseFloat($('mhBuy').value) || 0;
+    if (!id || !(qty > 0)) { toast('Укажите монету и количество'); return; }
+    manualHold.push({ id: id, qty: qty, buy: buy });
+    localStorage.setItem('ct_mh', JSON.stringify(manualHold));
+    $('mhQty').value = ''; $('mhBuy').value = ''; renderManual(); toast('Добавлено');
+  });
+  var mhListEl = $('mhList');
+  if (mhListEl) mhListEl.addEventListener('click', function (e) {
+    var btn = e.target.closest('.mh-rm'); if (!btn) return;
+    manualHold.splice(+btn.getAttribute('data-i'), 1);
+    localStorage.setItem('ct_mh', JSON.stringify(manualHold)); renderManual();
+  });
+  async function loadGas() {
+    var box = $('gasBox'); if (!box) return;
+    try {
+      var r = await fetch('https://api.etherscan.io/api?module=gastracker&action=gasoracle').then(function (x) { return x.json(); });
+      if (r && r.result && r.result.SafeGasPrice) {
+        var g = r.result;
+        box.innerHTML = '<div class="hold-row"><span>Safe</span><b>' + g.SafeGasPrice + ' Gwei</b></div><div class="hold-row"><span>Propose</span><b>' + g.ProposeGasPrice + ' Gwei</b></div><div class="hold-row"><span>Fast</span><b>' + g.FastGasPrice + ' Gwei</b></div>';
+        return;
+      }
+    } catch (e) {}
+    try {
+      var r2 = await fetch('https://cloudflare-eth.com', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_gasPrice', params: [] }) }).then(function (x) { return x.json(); });
+      if (r2 && r2.result) { box.innerHTML = '<div class="hold-row"><span>Current</span><b>' + (parseInt(r2.result, 16) / 1e9).toFixed(1) + ' Gwei</b></div>'; return; }
+    } catch (e2) {}
+    box.innerHTML = '<div class="muted"><a href="https://etherscan.io/gastracker" target="_blank" rel="noopener">Etherscan Gas</a></div>';
+  }
+  function calcTP() {
+    var inv = parseFloat(($('tpInv') || {}).value) || 0, pctV = parseFloat(($('tpPct') || {}).value) || 0, out = $('tpOut');
+    if (!out) return; if (!(inv > 0)) { out.textContent = '—'; return; }
+    var target = inv * (1 + pctV / 100); out.textContent = 'Нужно: ' + fmt(target) + ' · прибыль ' + fmt(target - inv);
+  }
+  function calcDCA() {
+    var amt = parseFloat(($('dcaAmt') || {}).value) || 0, months = parseInt(($('dcaMonths') || {}).value, 10) || 0, growth = parseFloat(($('dcaGrowth') || {}).value) || 0, out = $('dcaOut');
+    if (!out) return; if (!(amt > 0) || !(months > 0)) { out.textContent = '—'; return; }
+    var monthlyRate = Math.pow(1 + growth / 100, 1 / 12) - 1, total = 0;
+    for (var i = 0; i < months; i++) total = (total + amt) * (1 + monthlyRate);
+    var invested = amt * months;
+    out.textContent = 'Вложено ' + fmt(invested) + ' → ≈ ' + fmt(total) + ' (' + pct(((total - invested) / invested) * 100) + ')';
+  }
+  ['tpInv', 'tpPct'].forEach(function (id) { var el = $(id); if (el) el.addEventListener('input', calcTP); });
+  ['dcaAmt', 'dcaMonths', 'dcaGrowth'].forEach(function (id) { var el = $(id); if (el) el.addEventListener('input', calcDCA); });
 
   var curSel = $('curSel');
   if (curSel) {
