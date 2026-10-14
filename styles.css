@@ -164,3 +164,47 @@ tr[data-id]:hover { background: var(--card2); }
   .top-actions .chip#mcapChip, .top-actions .chip#domChip { display: inline-block; font-size: .65rem; }
   .form { grid-template-columns: 1fr; }
 }
+
+/* v10 enhancements */
+.cicon { width: 22px; height: 22px; border-radius: 50%; vertical-align: middle; margin-right: .3rem; object-fit: cover; background: var(--card2); }
+.coin-cell { display: flex; align-items: center; gap: .25rem; }
+.apy { color: #c084fc; font-size: .78rem; font-weight: 600; }
+.row-anim { animation: rowIn .25s ease; }
+@keyframes rowIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fade { from { opacity: 0; } to { opacity: 1; } }
+.page { display: none; animation: fade .2s ease; }
+.page.on { display: block; }
+.trend-row { display: inline-flex; align-items: center; gap: .25rem; margin: .15rem; }
+.ai-box {
+  background: linear-gradient(135deg, rgba(168,85,247,.12), rgba(124,58,237,.08));
+  border: 1px solid rgba(168,85,247,.35); border-radius: 12px; padding: .65rem .8rem;
+  font-size: .85rem; line-height: 1.45;
+}
+.news-item {
+  display: block; padding: .55rem 0; border-bottom: 1px solid var(--line);
+  transition: background .15s;
+}
+.news-item:hover { background: var(--card2); }
+.news-t { font-weight: 600; font-size: .9rem; }
+.news-m { font-size: .72rem; margin-top: .15rem; }
+.news-head { font-weight: 700; margin-bottom: .4rem; color: var(--accent); }
+.hold-row { display: flex; align-items: center; gap: .4rem; padding: .4rem 0; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
+.sr-item {
+  display: flex; align-items: center; gap: .4rem; padding: .5rem .65rem; cursor: pointer;
+  border-bottom: 1px solid var(--line);
+}
+.sr-item:hover { background: var(--card2); }
+.sr-box {
+  position: absolute; left: 0; right: 0; top: 100%; z-index: 30;
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  max-height: 280px; overflow-y: auto; box-shadow: var(--shadow); margin-top: .25rem;
+}
+.up { color: var(--up); }
+.down { color: var(--down); }
+.card { transition: transform .15s ease, box-shadow .15s; }
+.card:hover { box-shadow: 0 10px 32px rgba(168,85,247,.12); }
+.nav-btn { transition: transform .12s, border-color .15s; }
+.nav-btn:active { transform: scale(.96); }
+.btn, .btn-ghost { transition: transform .12s, opacity .15s; }
+.btn:active, .btn-ghost:active { transform: scale(.97); }
+#chartTip { min-height: 1.2em; }
