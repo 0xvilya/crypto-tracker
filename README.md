@@ -1,36 +1,40 @@
 # 💰 Crypto Tracker
 
-Трекер криптовалют с актуальными ценами, графиками, списком наблюдения, ссылками на популярные биржи и новостями.
+Быстрый трекер криптовалют: цены, графики, ручной портфель, аналитика кошельков и новости.
+
+**Live:** https://0xvilya.github.io/crypto-tracker/
+
+## Что исправлено в v7
+
+- ⚡ **Быстрая загрузка** — кэш API, меньше запросов, параллельные fetch
+- 💱 **Валюты** — USD / EUR / RUB / PLN работают корректно, цены пересчитываются
+- 📈 **Графики** — TradingView для популярных монет + fallback canvas с CoinGecko
+- 💼 **Ручной портфель** — стабильное добавление/удаление, P&L, pie-chart, история
+- 👛 **Аналитика кошелька** — при вводе адреса показывается нативный баланс, популярные токены и оценка в выбранной валюте (ETH/BSC/Polygon/Arbitrum/Optimism/Base/Solana/TON/Bitcoin)
+- 📰 Новости без битых переводов
+- 🌙 Тёмная / светлая тема, RU / EN
 
 ## Возможности
 
-- ✅ **Актуальные цены** — обновляются автоматически (CoinGecko API)
-- 📈 **Графики** — история цен за 1д / 7д / 30д / 90д / 1г / max
-- 📌 **Watchlist** — добавляйте монеты, которые следите (сохраняется в localStorage)
-- 🏦 **Ссылки на биржи** — Binance, Bybit, Coinbase, Kraken, OKX, Bitget
-- 📰 **Новости** — тренды и ссылки на актуальные новости по крипто
-- 🌐 **Тёмная тема** + адаптивный дизайн
-
-## Демо
-
-Откройте [GitHub Pages](https://0xvilya.github.io/crypto-tracker/) после включения в настройках репозитория:
-
-1. Settings → Pages
-2. Source: Deploy from a branch
-3. Branch: `main` / root
-4. Save
+- Watchlist с поиском и топ-монетами
+- Детальная карточка монеты + ссылки на биржи
+- Ручной портфель + калькулятор P&L «если бы купил тогда»
+- Аналитика портфеля (история стоимости)
+- Кошелёк: вставь адрес → токены и стоимость
+- Конвертер, gas, DCA, цель прибыли, доминация
+- Export / Import JSON и CSV
 
 ## Технологии
 
-- Pure HTML / CSS / JavaScript (no build)
-- [CoinGecko Public API](https://www.coingecko.com/en/api) (без ключа)
-- Chart.js для графиков
-- localStorage для watchlist
+- Pure HTML / CSS / JS (без сборки)
+- CoinGecko public API
+- TradingView widget
+- Публичные RPC (publicnode), TON API, Solana RPC, Blockstream
 
-## Как использовать
+## Локальный запуск
 
-1. Откройте `index.html` локально или через GitHub Pages
-2. Добавляйте монеты в watchlist через поиск
-3. Кликайте на монету — увидите график, историю и ссылки на биржи
+Откройте `index.html` в браузере или через любой static server.
 
-Data provided by [CoinGecko](https://www.coingecko.com/).
+## GitHub Pages
+
+Settings → Pages → Branch: `main` / root → Save.
