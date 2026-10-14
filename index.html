@@ -8,8 +8,7 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<script src="https://s3.tradingview.com/tv.js"></script>
-<link rel="stylesheet" href="styles.css?v=80"/>
+<link rel="stylesheet" href="styles.css?v=90"/>
 </head>
 <body>
 <header class="topbar">
@@ -84,14 +83,6 @@
       <canvas id="portChart" width="240" height="240" style="display:block;margin:0 auto;max-width:100%"></canvas>
       <div id="portLegend" style="text-align:center;margin-top:.6rem;font-size:.75rem"></div></div>
   </div>
-  <div class="card"><h2 data-i18n="pnl_calc">P&amp;L Calculator</h2>
-    <div class="form">
-      <div class="field" style="grid-column:1/-1"><label data-i18n="lbl_coin">Coin</label><select id="pnlCoin"></select></div>
-      <div class="field"><label data-i18n="lbl_date">Buy date</label><input type="date" id="pnlDate"/></div>
-      <div class="field"><label data-i18n="lbl_amt">Amount</label><input type="number" id="pnlAmt" min="0" step="any" placeholder="1000" inputmode="decimal"/></div></div>
-    <button type="button" class="btn" id="pnlBtn" style="margin-top:.6rem" data-i18n="btn_calc">Calculate</button>
-    <div id="pnlBox" class="pnl-box" style="display:none;margin-top:.6rem"><div><span data-i18n="profit">Profit</span>: <b id="pnlProfit">—</b></div><div id="pnlPct">—</div></div>
-    <div id="savedPnl" style="margin-top:.6rem"></div></div>
   <div class="card"><h2 data-i18n="from_wallet">From wallet</h2><div id="holdList" class="muted" data-i18n="connect_w">Connect wallet</div></div>
 </section>
 <section class="page" id="p-news">
@@ -101,59 +92,53 @@
       <button type="button" class="tab" data-f="BTC">Bitcoin</button>
       <button type="button" class="tab" data-f="ETH">Ethereum</button>
       <button type="button" class="tab" data-f="SOL">Solana</button>
-      <button type="button" class="tab" data-f="XRP">XRP</button>
-      <button type="button" class="tab" data-f="BNB">BNB</button>
-      <button type="button" class="tab" data-f="DOGE">DOGE</button>
-      <button type="button" class="tab" data-f="ADA">ADA</button>
-      <button type="button" class="tab" data-f="TON">TON</button>
-      <button type="button" class="tab" data-f="market">Market</button></div>
-    <div id="newsList" class="muted">...</div>
-    <div id="outlook" class="muted" style="margin-top:.8rem"></div><div id="coinOutlook" style="margin-top:.4rem"></div></div>
+    </div>
+    <div id="newsList" class="muted">News feed loading…</div>
+  </div>
 </section>
 <section class="page" id="p-wallet">
   <div class="card"><h2 data-i18n="wallets">Wallets</h2>
-    <p class="muted" style="margin-bottom:.6rem" data-i18n="wallet_hint">Tap wallet to connect</p>
-    <div class="w-grid" id="wGrid"></div>
+    <p class="muted" style="margin-bottom:.6rem">MetaMask / Phantom / Tonkeeper — paste address below for balance</p>
+    <div class="w-grid" id="wGrid">
+      <div class="w-card" data-wid="metamask" style="cursor:pointer;text-align:center;padding:.7rem"><div style="font-size:1.4rem">💎</div><div style="font-size:.75rem;margin-top:.25rem">MetaMask</div></div>
+      <div class="w-card" data-wid="phantom" style="cursor:pointer;text-align:center;padding:.7rem"><div style="font-size:1.4rem">🐻</div><div style="font-size:.75rem;margin-top:.25rem">Phantom</div></div>
+      <div class="w-card" data-wid="tonkeeper" style="cursor:pointer;text-align:center;padding:.7rem"><div style="font-size:1.4rem">💎</div><div style="font-size:.75rem;margin-top:.25rem">Tonkeeper</div></div>
+    </div>
     <div id="wInfo" style="display:none;margin-top:.8rem">
-      <div class="hold-row"><span data-i18n="address">Address</span><b id="wAddr" style="word-break:break-all;font-size:.75rem">—</b></div>
-      <div class="hold-row"><span data-i18n="chain">Chain</span><b id="wChain">—</b></div>
-      <div class="hold-row"><span data-i18n="balance">Balance</span><b id="wBal">—</b></div>
-      <button type="button" class="btn-ghost" id="wDisc" style="margin-top:.4rem" data-i18n="disconnect">Disconnect</button></div></div>
+      <div class="hold-row"><span>Address</span><b id="wAddr" style="word-break:break-all;font-size:.75rem">—</b></div>
+      <div class="hold-row"><span>Chain</span><b id="wChain">—</b></div>
+      <div class="hold-row"><span>Balance</span><b id="wBal">—</b></div>
+      <button type="button" class="btn-ghost" id="wDisc" style="margin-top:.4rem">Disconnect</button></div></div>
   <div class="card"><h2 data-i18n="man_addr">Manual address</h2>
     <div class="form">
-      <div class="field" style="grid-column:1/-1"><label data-i18n="chain">Chain</label><select id="manChain">
+      <div class="field" style="grid-column:1/-1"><label>Chain</label><select id="manChain">
         <option value="eth">Ethereum</option><option value="bsc">BNB</option>
-        <option value="polygon">Polygon</option><option value="arb">Arbitrum</option>
-        <option value="op">Optimism</option><option value="base">Base</option>
-        <option value="sol">Solana</option><option value="ton">TON</option><option value="btc">Bitcoin</option></select></div>
-      <div class="field" style="grid-column:1/-1"><label data-i18n="address">Address</label><input type="text" id="manAddr" placeholder="0x… / EQ… / UQ…"/></div></div>
-    <button type="button" class="btn" id="manBtn" style="margin-top:.65rem" data-i18n="show_bal">Show balance</button>
+        <option value="polygon">Polygon</option><option value="sol">Solana</option>
+        <option value="ton">TON</option><option value="btc">Bitcoin</option></select></div>
+      <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="manAddr" placeholder="0x… / EQ… / UQ…"/></div></div>
+    <button type="button" class="btn" id="manBtn" style="margin-top:.65rem">Show balance</button>
     <div id="manRes" class="muted" style="margin-top:.6rem;word-break:break-all"></div></div>
 </section>
 <section class="page" id="p-tools">
   <div class="card"><h2 data-i18n="converter">Converter</h2><div class="form">
-    <div class="field" style="grid-column:1/-1"><label data-i18n="amount">Amount</label><input type="number" id="convAmt" value="1" min="0" step="any" inputmode="decimal"/></div>
-    <div class="field"><label data-i18n="from">From</label><select id="convFrom"></select></div>
-    <div class="field"><label data-i18n="to">To</label><select id="convTo"></select></div></div>
+    <div class="field" style="grid-column:1/-1"><label>Amount</label><input type="number" id="convAmt" value="1" min="0" step="any" inputmode="decimal"/></div>
+    <div class="field"><label>From</label><select id="convFrom"></select></div>
+    <div class="field"><label>To</label><select id="convTo"></select></div></div>
     <div style="margin-top:.7rem;font-weight:700;font-size:1.1rem;word-break:break-all" id="convOut">—</div></div>
   <div class="card"><h2 data-i18n="gas">Gas fees</h2><div id="gasBox" class="muted">...</div></div>
-  <div class="card"><h2 data-i18n="profit_t">Profit target</h2><div class="form">
-    <div class="field"><label data-i18n="invested">Invested</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000" inputmode="decimal"/></div>
-    <div class="field"><label data-i18n="target_pct">Target %</label><input type="number" id="tpPct" min="0" step="any" value="50" inputmode="decimal"/></div></div>
+  <div class="card"><h2>Profit target</h2><div class="form">
+    <div class="field"><label>Invested</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000" inputmode="decimal"/></div>
+    <div class="field"><label>Target %</label><input type="number" id="tpPct" min="0" step="any" value="50" inputmode="decimal"/></div></div>
     <div style="margin-top:.6rem;font-weight:700;word-break:break-all" id="tpOut">—</div></div>
   <div class="card"><h2>DCA</h2><div class="form">
     <div class="field"><label>$/month</label><input type="number" id="dcaAmt" min="0" step="any" value="100" inputmode="decimal"/></div>
-    <div class="field"><label data-i18n="months">Months</label><input type="number" id="dcaMonths" min="1" step="1" value="12" inputmode="numeric"/></div>
-    <div class="field" style="grid-column:1/-1"><label data-i18n="growth">Growth %/yr</label><input type="number" id="dcaGrowth" step="any" value="20" inputmode="decimal"/></div></div>
+    <div class="field"><label>Months</label><input type="number" id="dcaMonths" min="1" step="1" value="12" inputmode="numeric"/></div>
+    <div class="field" style="grid-column:1/-1"><label>Growth %/yr</label><input type="number" id="dcaGrowth" step="any" value="20" inputmode="decimal"/></div></div>
     <div style="margin-top:.6rem;font-weight:700;word-break:break-all" id="dcaOut">—</div></div>
-  <div class="card"><h2 data-i18n="dominance">Dominance</h2><div id="domList" class="muted">—</div></div>
 </section>
 </div>
+<footer style="text-align:center;padding:1rem;font-size:.75rem"><a href="#" id="aboutLink" style="color:var(--accent2)">About</a> · <a href="#" id="privacyLink" style="color:var(--accent2)">Privacy</a></footer>
 <div class="toast" id="toast"></div>
-<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@a1ed1254/app.js"></script>
-<script src="fix.js?v=80"></script>
-<script src="fix2.js?v=80"></script>
-<script src="fix3.js?v=80"></script>
-<script src="fix4.js?v=80"></script>
+<script src="core.js?v=90"></script>
 </body>
 </html>
