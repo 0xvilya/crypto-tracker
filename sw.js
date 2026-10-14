@@ -1,20 +1,45 @@
-const CACHE = 'ct-v95';
-const ASSETS = ['./', './index.html', './styles.css', './app.js', './icon.svg', './manifest.json'];
-self.addEventListener('install', e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS).catch(() => {})).then(() => self.skipWaiting()));
+const CACHE_NAME = 'crypto-tracker-v1';
+const ASSETS = ['./', './index.html', './styles.css', './core.js', './app.js', './manifest.json', './icon.svg'];
+
+self.addEventListener('install', function (event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function (cache) {
+      return cache.addAll(ASSETS).catch(function () {});
+    }).then(function () {
+      return self.skipWaiting();
+    })
+  );
 });
-self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+
+self.addEventListener('activate', function (event) {
+  event.waitUntil(
+    caches.keys().then(function (keys) {
+      return Promise.all(keys.filter(function (key) {
+        return key !== CACHE_NAME;
+      }).map(function (key) {
+        return caches.delete(key);
+      }));
+    }).then(function () {
+      return self.clients.claim();
+    })
+  );
 });
-self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  e.respondWith(
-    fetch(e.request).then(res => {
-      if (res.ok && e.request.url.includes('0xvilya.github.io') && !e.request.url.includes('api.')) {
-        const clone = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, clone)).catch(() => {});
+
+self.addEventListener('fetch', function (event) {
+  if (event.request.method !== 'GET') return;
+  event.respondWith(
+    fetch(event.request).then(function (response) {
+      if (response && response.ok) {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(function (cache) {
+          cache.put(event.request, copy);
+        }).catch(function () {});
       }
-      return res;
-    }).catch(() => caches.match(e.request).then(r => r || caches.match('./index.html')))
+      return response;
+    }).catch(function () {
+      return caches.match(event.request).then(function (response) {
+        return response || caches.match('./index.html');
+      });
+    })
   );
 });

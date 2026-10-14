@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#120b22" />
+    <title>Crypto Tracker</title>
+    <meta name="description" content="Crypto tracker dashboard with coin prices, portfolio and tools" />
+    <link rel="manifest" href="manifest.json" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <div class="brand-wrap">
+          <div class="brand-mark">₿</div>
+          <div>
+            <div class="brand-name">Crypto Tracker</div>
+            <div class="brand-sub">Live market overview</div>
+          </div>
+        </div>
+
+        <div class="topbar-actions">
+          <label class="inline control">
+            <span data-i18n="currency">Currency</span>
+            <select id="curSel">
+              <option value="usd">USD</option>
+              <option value="eur">EUR</option>
+              <option value="rub">RUB</option>
+              <option value="pln">PLN</option>
+            </select>
+          </label>
+
+          <label class="inline control">
+            <span data-i18n="language">Language</span>
+            <select id="langSel">
+              <option value="en">EN</option>
+              <option value="ru">RU</option>
+            </select>
+          </label>
+
+          <button id="refreshBtn" class="button small" type="button">↻</button>
+        </div>
+      </header>
+
+      <nav class="main-nav" aria-label="Main navigation">
+        <button class="nav-btn active" type="button" data-p="home">Home</button>
+        <button class="nav-btn" type="button" data-p="port">Portfolio</button>
+        <button class="nav-btn" type="button" data-p="news">News</button>
+        <button class="nav-btn" type="button" data-p="wallet">Wallet</button>
+        <button class="nav-btn" type="button" data-p="tools">Tools</button>
+      </nav>
+
+      <main class="layout">
+        <section class="panel home-panel">
+          <div class="search-wrap">
+            <input id="coinSearch" type="search" placeholder="Search coin..." aria-label="Search coin" />
+            <div id="searchResults" class="search-results"></div>
+          </div>
+
+          <div class="two-col cards">
+            <div class="card">
+              <div class="card-header">
+                <h3 data-i18n="watchlist">Watchlist</h3>
+              </div>
+              <table class="watch-table">
+                <tbody id="watchBody"></tbody>
+              </table>
+            </div>
+
+            <div class="card">
+              <div class="card-header">
+                <h3 data-i18n="trending">Trending</h3>
+              </div>
+              <div id="trends" class="trend-list"></div>
+            </div>
+          </div>
+        </section>
+
+        <aside class="panel detail-panel">
+          <div id="detail" class="coin-detail">
+            <div class="detail-header">
+              <div>
+                <div id="dSym" class="coin-symbol">BTC</div>
+                <div id="dName" class="coin-name">Bitcoin</div>
+              </div>
+              <div id="dPrice" class="coin-price">$0.00</div>
+            </div>
+
+            <div id="dCh" class="coin-change positive">+0.00%</div>
+            <div id="chartsWrap" class="chart-wrap">
+              <canvas id="chartCanvas" width="440" height="220"></canvas>
+            </div>
+            <div id="chartTip" class="chart-tip">Tap chart for price</div>
+            <div id="exLinks" class="external-links"></div>
+          </div>
+        </aside>
+
+        <section class="panel portfolio-panel">
+          <div class="card-header two-way">
+            <h3 data-i18n="manual_port">Manual portfolio</h3>
+            <span id="portfolioTotal" class="pill hidden">$0</span>
+          </div>
+
+          <div class="portfolio-box">
+            <div id="manualHoldings" class="holdings-list"></div>
+            <div class="portfolio-form">
+              <select id="mhCoin"></select>
+              <input id="mhQty" type="number" min="0" step="0.0001" placeholder="Qty" />
+              <input id="mhBuy" type="number" min="0" step="0.01" placeholder="Avg buy" />
+              <button id="mhAdd" class="button" type="button">Add</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel wallet-panel">
+          <div class="card-header">
+            <h3 data-i18n="wallet">Wallet</h3>
+          </div>
+
+          <div class="wallet-grid">
+            <button class="wallet-card ton" type="button" data-wallet="ton">
+              <span class="wallet-icon">T</span>
+              <span>Tonkeeper</span>
+            </button>
+            <button class="wallet-card metamask" type="button" data-wallet="metamask">
+              <span class="wallet-icon">M</span>
+              <span>MetaMask</span>
+            </button>
+            <button class="wallet-card custom" type="button" data-wallet="custom">
+              <span class="wallet-icon">+</span>
+              <span>Custom</span>
+            </button>
+          </div>
+
+          <div class="wallet-form hidden" id="walletForm">
+            <input id="walletAddress" type="text" placeholder="Wallet address" />
+            <button id="walletSave" class="button" type="button">Save</button>
+          </div>
+        </section>
+
+        <section class="panel tools-panel">
+          <div class="card-header">
+            <h3 data-i18n="tools">Tools</h3>
+          </div>
+
+          <div class="tool-grid">
+            <div class="mini-card">
+              <h4>Converter</h4>
+              <div class="pair-row">
+                <input id="convAmt" type="number" value="1" step="0.01" />
+                <select id="convFrom"></select>
+              </div>
+              <div class="pair-row">
+                <input id="convOut" readonly value="0" />
+                <select id="convTo"></select>
+              </div>
+            </div>
+
+            <div class="mini-card">
+              <h4>DCA</h4>
+              <div class="stacked-inputs">
+                <input id="dcaAmt" type="number" value="100" step="10" placeholder="Monthly" />
+                <input id="dcaMonths" type="number" value="12" min="1" step="1" placeholder="Months" />
+                <input id="dcaGrowth" type="number" value="5" step="0.1" placeholder="Growth %" />
+              </div>
+              <div id="dcaResult" class="result-pill">$0</div>
+            </div>
+
+            <div class="mini-card">
+              <h4>Gas</h4>
+              <div id="gasBox" class="gas-box"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel news-panel">
+          <div class="card-header">
+            <h3 data-i18n="news">News</h3>
+          </div>
+          <div id="newsList" class="news-list"></div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script src="core.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

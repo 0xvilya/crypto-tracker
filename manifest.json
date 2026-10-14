@@ -1,0 +1,5 @@
+(function () {
+  if (window.CryptoTracker && typeof window.CryptoTracker.init === 'function') {
+    window.CryptoTracker.init();
+  }
+})();
