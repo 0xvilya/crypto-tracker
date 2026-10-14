@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
@@ -17,21 +17,21 @@
     <span class="chip" id="domChip">BTC: —</span>
     <span class="chip" id="fgChip">FG: —</span>
     <select id="curSel" class="select"><option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option><option value="pln">PLN</option></select>
-    <select id="langSel" class="select"><option value="ru">RU</option><option value="en">EN</option></select>
+    <select id="langSel" class="select"><option value="en">EN</option><option value="ru">RU</option></select>
     <button type="button" class="select" id="themeBtn">Dark</button>
   </div>
 </header>
 <nav class="bottom-nav" id="nav">
-  <button type="button" class="nav-btn on" data-p="home"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span>Главная</span></button>
-  <button type="button" class="nav-btn" data-p="port"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Портфель</span></button>
-  <button type="button" class="nav-btn" data-p="news"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg><span>Новости</span></button>
-  <button type="button" class="nav-btn" data-p="wallet"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg><span>Кошелёк</span></button>
-  <button type="button" class="nav-btn" data-p="tools"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg><span>Инструменты</span></button>
+  <button type="button" class="nav-btn on" data-p="home"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span>Home</span></button>
+  <button type="button" class="nav-btn" data-p="port"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span>Portfolio</span></button>
+  <button type="button" class="nav-btn" data-p="news"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg><span>News</span></button>
+  <button type="button" class="nav-btn" data-p="wallet"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg><span>Wallet</span></button>
+  <button type="button" class="nav-btn" data-p="tools"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg><span>Tools</span></button>
 </nav>
 <div class="wrap">
 <section class="page on" id="p-home">
   <div class="stats"><div class="stat">24h <b id="st24">—</b></div></div>
-  <div class="search-wrap"><input type="search" id="q" placeholder="Search…" autocomplete="off"/><div class="sr-box" id="sr" style="display:none"></div></div>
+  <div class="search-wrap"><input type="search" id="q" placeholder="Search coin…" autocomplete="off"/><div class="sr-box" id="sr" style="display:none"></div></div>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem"><h2>Watchlist</h2>
       <div style="display:flex;gap:.4rem"><button type="button" class="btn-ghost" id="addTop">+ Top</button><button type="button" class="btn-ghost" id="refBtn">↻</button></div></div>
@@ -46,8 +46,8 @@
 </section>
 <section class="page" id="p-port">
   <div class="card">
-    <h2>Мой портфель</h2>
-    <p class="muted" style="margin-bottom:.5rem">BTC ETH SOL… → qty → +. Same coin + same buy price = merged.</p>
+    <h2>Manual portfolio</h2>
+    <p class="muted" style="margin-bottom:.5rem">Pick BTC ETH SOL… → qty → +. Same coin + same buy price merges.</p>
     <div class="form">
       <div class="field" style="grid-column:1/-1"><label>Coin</label>
         <input type="text" id="mhQ" placeholder="BTC…" autocomplete="off"/><input type="hidden" id="mhCoin"/>
@@ -128,7 +128,7 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@a1ed1254/app.js"></script>
-<script src="fix.js?v=56"></script>
-<script src="fix2.js?v=56"></script>
+<script src="fix.js?v=57"></script>
+<script src="fix2.js?v=57"></script>
 </body>
 </html>

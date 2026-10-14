@@ -1,49 +1,77 @@
-/* v5.5 overlay */
+/* v5.6 converter + news lang lock */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }
   function getLang() {
     var sel = $('langSel');
     if (sel && sel.value) return sel.value;
-    return localStorage.getItem('ct_lang') || 'ru';
+    return localStorage.getItem('ct_lang') || 'en';
   }
 
-  async function loadFGChip() {
-    var chip = $('fgChip');
-    if (!chip) {
-      var actions = document.querySelector('.top-actions');
-      if (actions) {
-        chip = document.createElement('span');
-        chip.className = 'chip';
-        chip.id = 'fgChip';
-        chip.textContent = 'FG: \u2014';
-        var dom = $('domChip');
-        if (dom) actions.insertBefore(chip, dom.nextSibling);
-        else actions.appendChild(chip);
+  var CONV_COINS = [
+    { id: 'bitcoin', s: 'BTC' }, { id: 'ethereum', s: 'ETH' }, { id: 'solana', s: 'SOL' },
+    { id: 'binancecoin', s: 'BNB' }, { id: 'ripple', s: 'XRP' }, { id: 'cardano', s: 'ADA' },
+    { id: 'dogecoin', s: 'DOGE' }, { id: 'toncoin', s: 'TON' }, { id: 'litecoin', s: 'LTC' },
+    { id: 'polkadot', s: 'DOT' }, { id: 'chainlink', s: 'LINK' }, { id: 'avalanche-2', s: 'AVAX' }
+  ];
+  var convPrices = {};
+
+  async function initConverter() {
+    var from = $('convFrom') || $('cFrom');
+    var to = $('convTo') || $('cTo');
+    var amt = $('convAmt') || $('cAmt');
+    var out = $('convOut') || $('cOut');
+    if (!from || !to) return;
+
+    var ids = CONV_COINS.map(function (c) { return c.id; }).join(',');
+    var cur = localStorage.getItem('ct_cur') || 'usd';
+    try {
+      var data = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=' + cur +
+        '&ids=' + encodeURIComponent(ids)).then(function (r) { return r.json(); });
+      (data || []).forEach(function (c) { convPrices[c.id] = c.current_price; });
+    } catch (e) {}
+
+    var opts = CONV_COINS.map(function (c) {
+      var p = convPrices[c.id] || 0;
+      return '<option value="' + c.id + '" data-price="' + p + '">' + c.s + '</option>';
+    }).join('');
+    from.innerHTML = opts;
+    to.innerHTML = opts + '<option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option>';
+    if (!from.value) from.value = 'bitcoin';
+    if (!to.value) to.value = 'ethereum';
+
+    function doConv() {
+      var a = parseFloat((amt && amt.value) || 0) || 0;
+      var fid = from.value, tid = to.value;
+      var fp = convPrices[fid] || 0;
+      if (!fp || !out) { if (out) out.textContent = '\u2014'; return; }
+      if (tid === 'usd' || tid === 'eur' || tid === 'rub') {
+        var sym = tid === 'eur' ? '\u20ac' : tid === 'rub' ? '\u20bd' : '$';
+        out.textContent = sym + (a * fp).toLocaleString('en-US', { maximumFractionDigits: 2 });
+      } else {
+        var tp = convPrices[tid] || 0;
+        if (!tp) { out.textContent = '\u2014'; return; }
+        var toSym = (CONV_COINS.find(function (c) { return c.id === tid; }) || {}).s || tid;
+        out.textContent = ((a * fp) / tp).toLocaleString('en-US', { maximumFractionDigits: 8 }) + ' ' + toSym;
       }
     }
-    try {
-      var d = await fetch('https://api.alternative.me/fng/?limit=1').then(function (r) { return r.json(); });
-      var v = d && d.data && d.data[0];
-      if (!v) return;
-      var n = +v.value;
-      var col = n <= 25 ? '#ef4444' : n <= 45 ? '#f59e0b' : n <= 55 ? '#eab308' : n <= 75 ? '#84cc16' : '#22c55e';
-      if (chip) {
-        chip.innerHTML = 'FG: <b style="color:' + col + '">' + n + '</b>';
-        chip.title = n + ' \u00b7 ' + (v.value_classification || '');
-      }
-      var fgBox = $('fgBox');
-      if (fgBox) { var card = fgBox.closest('.card'); if (card) card.style.display = 'none'; }
-    } catch (e) {}
+    if (amt) { amt.oninput = doConv; }
+    from.onchange = doConv;
+    to.onchange = doConv;
+    doConv();
   }
-  setTimeout(loadFGChip, 400);
-  setInterval(loadFGChip, 300000);
+  setTimeout(initConverter, 500);
+  document.querySelectorAll('.nav-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.getAttribute('data-p') === 'tools') setTimeout(initConverter, 150);
+    });
+  });
 
   var newsBusy = false, lastLang = null;
   async function gTranslate(text, to) {
     if (!text || to === 'en') return text;
     try {
-      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=' +
+      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
         encodeURIComponent(to) + '&dt=t&q=' + encodeURIComponent(String(text).slice(0, 400));
       var r = await fetch(url).then(function (x) { return x.json(); });
       if (r && r[0]) {
@@ -53,10 +81,9 @@
     } catch (e) {}
     return text;
   }
-  async function reloadNewsForLang() {
+  async function loadNewsLocked() {
     var box = $('newsList'); if (!box || newsBusy) return;
     var lang = getLang();
-    if (lastLang === lang && box.querySelector('.news-item') && !/MYMEMORY/i.test(box.innerHTML)) return;
     newsBusy = true;
     box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026' : 'Loading\u2026') + '</div>';
     try {
@@ -77,15 +104,15 @@
         } catch (e) {}
       }
       all.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
-      all = all.slice(0, 16);
+      all = all.slice(0, 14);
       if (lang === 'ru') {
         for (var j = 0; j < all.length; j++) {
           all[j].title = await gTranslate(all[j].title, 'ru');
           if (all[j].desc) all[j].desc = await gTranslate(all[j].desc, 'ru');
-          if (j % 4 === 3) await new Promise(function (r) { setTimeout(r, 40); });
+          if (j % 4 === 3) await new Promise(function (r) { setTimeout(r, 30); });
         }
       }
-      if (getLang() !== lang) { newsBusy = false; reloadNewsForLang(); return; }
+      if (getLang() !== lang) { newsBusy = false; loadNewsLocked(); return; }
       box.innerHTML = all.map(function (n) {
         var d = '';
         try { d = new Date(n.date).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }); } catch (e) {}
@@ -97,22 +124,47 @@
     } catch (e) { box.innerHTML = '<div class="empty">Error</div>'; }
     newsBusy = false;
   }
+  setInterval(function () {
+    var box = $('newsList');
+    if (!box) return;
+    var lang = getLang();
+    if (lang === 'en' && box.querySelector('.news-item')) {
+      var first = box.querySelector('.news-item a');
+      if (first && /[\u0400-\u04FF]{4,}/.test(first.textContent || '')) {
+        lastLang = null;
+        loadNewsLocked();
+        return;
+      }
+    }
+    if (lang !== lastLang && !newsBusy) loadNewsLocked();
+  }, 2000);
   var ls = $('langSel');
   if (ls) ls.addEventListener('change', function () {
     localStorage.setItem('ct_lang', ls.value);
     lastLang = null;
-    setTimeout(reloadNewsForLang, 50);
+    loadNewsLocked();
   });
-  setInterval(function () {
-    if (lastLang && lastLang !== getLang()) { lastLang = null; reloadNewsForLang(); }
-  }, 1500);
+  document.querySelectorAll('.nav-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      if (b.getAttribute('data-p') === 'news') { lastLang = null; setTimeout(loadNewsLocked, 100); }
+    });
+  });
+  setTimeout(loadNewsLocked, 700);
 
-  var COIN_COLOR = {
-    bitcoin: '#f7931a', BTC: '#f7931a', ethereum: '#627eea', ETH: '#627eea',
-    solana: '#14f195', SOL: '#14f195', binancecoin: '#f3ba2f', BNB: '#f3ba2f',
-    dogecoin: '#c2a633', DOGE: '#c2a633', toncoin: '#0098ea', TON: '#0098ea',
-    ripple: '#00aae4', XRP: '#00aae4', cardano: '#0033ad', ADA: '#0033ad'
-  };
+  async function loadFGChip() {
+    var chip = $('fgChip');
+    if (!chip) return;
+    try {
+      var d = await fetch('https://api.alternative.me/fng/?limit=1').then(function (r) { return r.json(); });
+      var v = d && d.data && d.data[0]; if (!v) return;
+      var n = +v.value;
+      var col = n <= 25 ? '#ef4444' : n <= 45 ? '#f59e0b' : n <= 55 ? '#eab308' : n <= 75 ? '#84cc16' : '#22c55e';
+      chip.innerHTML = 'FG: <b style="color:' + col + '">' + n + '</b>';
+    } catch (e) {}
+  }
+  setTimeout(loadFGChip, 400);
+
+  var COIN_COLOR = { bitcoin: '#f7931a', BTC: '#f7931a', ethereum: '#627eea', ETH: '#627eea', solana: '#14f195', SOL: '#14f195', binancecoin: '#f3ba2f', BNB: '#f3ba2f' };
   function getHold() { try { return JSON.parse(localStorage.getItem('ct_mh') || '[]'); } catch (e) { return []; } }
   function setHold(arr) { localStorage.setItem('ct_mh', JSON.stringify(arr)); }
   function money(v, cur) {
@@ -208,49 +260,17 @@
       var btn = e.target.closest('.mh-rm'); if (!btn) return;
       var indices = (btn.getAttribute('data-indices') || '').split(',').map(Number).filter(function (n) { return !isNaN(n); });
       if (!indices.length) return;
+      e.stopPropagation();
       var hold = getHold();
       indices.sort(function (a, b) { return b - a; }).forEach(function (i) { hold.splice(i, 1); });
       setHold(hold);
       renderMerged();
     }, true);
   }
-  var mhAdd = $('mhAdd');
-  if (mhAdd) mhAdd.addEventListener('click', function () { setTimeout(renderMerged, 800); });
-  setTimeout(renderMerged, 900);
+  setTimeout(renderMerged, 1000);
   document.querySelectorAll('.nav-btn').forEach(function (b) {
     b.addEventListener('click', function () {
       if (b.getAttribute('data-p') === 'port') setTimeout(renderMerged, 200);
-      if (b.getAttribute('data-p') === 'news') setTimeout(reloadNewsForLang, 150);
     });
   });
-
-  if (!$('legalBar')) {
-    var footer = document.createElement('div');
-    footer.id = 'legalBar';
-    footer.style.cssText = 'text-align:center;padding:1rem .8rem 5rem;font-size:.72rem;color:var(--muted)';
-    footer.innerHTML = '<a href="#" id="aboutLink" style="color:var(--accent);margin:0 .5rem">\u041e \u043d\u0430\u0441</a>\u00b7<a href="#" id="privacyLink" style="color:var(--accent);margin:0 .5rem">\u041a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u044c</a>';
-    (document.querySelector('.wrap') || document.body).appendChild(footer);
-    var modal = document.createElement('div');
-    modal.id = 'legalModal';
-    modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.65);align-items:flex-end;justify-content:center';
-    modal.innerHTML = '<div style="background:var(--card,#12121a);border-radius:16px 16px 0 0;padding:1.2rem;max-height:70vh;overflow:auto;width:100%;max-width:520px;border:1px solid var(--border,#2a2a35)"><div style="display:flex;justify-content:space-between;margin-bottom:.8rem"><h2 id="legalTitle" style="margin:0;font-size:1.05rem"></h2><button type="button" id="legalClose" class="btn-ghost">\u00d7</button></div><div id="legalBody" style="font-size:.85rem;line-height:1.5;color:var(--muted)"></div></div>';
-    document.body.appendChild(modal);
-    function openL(t, h) { $('legalTitle').textContent = t; $('legalBody').innerHTML = h; modal.style.display = 'flex'; }
-    $('aboutLink').onclick = function (e) {
-      e.preventDefault();
-      openL(getLang() === 'ru' ? '\u041e \u043d\u0430\u0441' : 'About',
-        getLang() === 'ru'
-          ? '<p><b>Crypto Tracker</b> \u2014 \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439 \u0442\u0440\u0435\u043a\u0435\u0440 \u043a\u0440\u0438\u043f\u0442\u043e\u0432\u0430\u043b\u044e\u0442.</p><p>\u0426\u0435\u043d\u044b: CoinGecko. \u0413\u0440\u0430\u0444\u0438\u043a\u0438: TradingView. \u041d\u043e\u0432\u043e\u0441\u0442\u0438: Cointelegraph / CoinDesk. Fear & Greed: alternative.me.</p><p>\u041d\u0435 \u0444\u0438\u043d\u0430\u043d\u0441\u043e\u0432\u0430\u044f \u0440\u0435\u043a\u043e\u043c\u0435\u043d\u0434\u0430\u0446\u0438\u044f.</p>'
-          : '<p><b>Crypto Tracker</b> \u2014 free crypto tracker.</p><p>Prices: CoinGecko. Charts: TradingView. News: Cointelegraph / CoinDesk. F&G: alternative.me.</p><p>Not financial advice.</p>');
-    };
-    $('privacyLink').onclick = function (e) {
-      e.preventDefault();
-      openL(getLang() === 'ru' ? '\u041a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u044c' : 'Privacy',
-        getLang() === 'ru'
-          ? '<p>\u041c\u044b <b>\u043d\u0435 \u0441\u043e\u0431\u0438\u0440\u0430\u0435\u043c</b> \u043b\u0438\u0447\u043d\u044b\u0435 \u0434\u0430\u043d\u043d\u044b\u0435. \u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c \u0445\u0440\u0430\u043d\u0438\u0442\u0441\u044f \u0442\u043e\u043b\u044c\u043a\u043e \u0432 localStorage \u0431\u0440\u0430\u0443\u0437\u0435\u0440\u0430. \u0421\u0435\u0440\u0432\u0435\u0440\u0430 \u043d\u0435\u0442 \u2014 \u0437\u0430\u043f\u0440\u043e\u0441\u044b \u0438\u0434\u0443\u0442 \u043a \u043f\u0443\u0431\u043b\u0438\u0447\u043d\u044b\u043c API.</p>'
-          : '<p>We <b>do not collect</b> personal data. Portfolio is stored only in browser localStorage. No server \u2014 requests go to public APIs.</p>');
-    };
-    $('legalClose').onclick = function () { modal.style.display = 'none'; };
-    modal.onclick = function (e) { if (e.target === modal) modal.style.display = 'none'; };
-  }
 })();
