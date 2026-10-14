@@ -15,6 +15,7 @@
   <div class="top-actions">
     <span class="chip" id="mcapChip">Cap: —</span>
     <span class="chip" id="domChip">BTC: —</span>
+    <span class="chip" id="fgChip">FG: —</span>
     <select id="curSel" class="select"><option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option><option value="pln">PLN</option></select>
     <select id="langSel" class="select"><option value="ru">RU</option><option value="en">EN</option></select>
     <button type="button" class="select" id="themeBtn">Dark</button>
@@ -46,7 +47,7 @@
 <section class="page" id="p-port">
   <div class="card">
     <h2>Мой портфель (вручную)</h2>
-    <p class="muted" style="margin-bottom:.5rem">Кнопки BTC ETH SOL… → количество → + Добавить</p>
+    <p class="muted" style="margin-bottom:.5rem">Кнопки BTC ETH SOL… → количество → + Добавить. Одинаковые монеты с одной ценой покупки суммируются.</p>
     <div class="form">
       <div class="field" style="grid-column:1/-1"><label>Монета</label>
         <input type="text" id="mhQ" placeholder="BTC, ethereum…" autocomplete="off"/><input type="hidden" id="mhCoin"/>
@@ -108,7 +109,6 @@
     <div id="manRes" class="muted" style="margin-top:.6rem"></div></div>
 </section>
 <section class="page" id="p-tools">
-  <div class="card"><h2>Fear & Greed</h2><div id="fgBox" style="text-align:center;padding:1rem 0"><canvas id="fgCanvas" width="160" height="160"></canvas><div id="fgLabel" style="margin-top:.5rem;font-weight:700">—</div></div></div>
   <div class="card"><h2>Конвертер</h2><div class="form">
     <div class="field"><label>Сумма</label><input type="number" id="convAmt" value="1" min="0" step="any"/></div>
     <div class="field"><label>Из</label><select id="convFrom"></select></div>
@@ -129,6 +129,6 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@a1ed1254/app.js"></script>
-<script src="fix.js?v=55"></script>
+<script src="fix.js?v=56"></script>
 </body>
 </html>
