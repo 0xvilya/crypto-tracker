@@ -1,5 +1,71 @@
-const CACHE='ct-v1';
-const ASSETS=['./','./index.html','./styles.css','./fix.js','./fix2.js','./fix3.js','./icon.svg'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS).catch(()=>{})).then(()=>self.skipWaiting()))});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request).then(res=>{try{const url=e.request.url;if(res.ok&&url.includes('0xvilya.github.io')){const clone=res.clone();caches.open(CACHE).then(c=>c.put(e.request,clone)).catch(()=>{})}}catch(e){}return res}).catch(()=>caches.match('./index.html'))))});
+const CACHE_VERSION = 'ct-v2-20261014-1';
+const CACHE_NAME = 'ct-cache-' + CACHE_VERSION;
+const ASSETS = [
+  './',
+  './index.html',
+  './styles.css',
+  './app.js',
+  './core.js',
+  './fix.js',
+  './fix2.js',
+  './fix3.js',
+  './icon.svg',
+  './manifest.json',
+  './tonconnect-manifest.json'
+];
+
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(function(cache){
+      return cache.addAll(ASSETS).catch(function(){ return Promise.resolve(); });
+    }).then(function(){ return self.skipWaiting(); })
+  );
+});
+
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    caches.keys().then(function(keys){
+      return Promise.all(keys.filter(function(key){
+        return key.indexOf('ct-cache-') === 0 && key !== CACHE_NAME;
+      }).map(function(key){
+        return caches.delete(key);
+      }));
+    }).then(function(){ return self.clients.claim(); })
+  );
+});
+
+self.addEventListener('fetch', function(event) {
+  var request = event.request;
+  if (!request || request.method !== 'GET') return;
+
+  var url = new URL(request.url);
+  var isSameOrigin = url.origin === self.location.origin;
+  var isHtmlRequest = request.mode === 'navigate' || /\.(html|htm)$/.test(url.pathname);
+
+  if (!isSameOrigin && !(request.destination === 'style' || request.destination === 'script' || request.destination === 'font')) {
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then(function(cached){
+      if (cached) {
+        return cached;
+      }
+
+      return fetch(request).then(function(response){
+        if (response && response.ok && isSameOrigin) {
+          var copy = response.clone();
+          caches.open(CACHE_NAME).then(function(cache){
+            cache.put(request, copy);
+          }).catch(function(){});
+        }
+        return response;
+      }).catch(function(){
+        if (isHtmlRequest) {
+          return caches.match('./index.html') || caches.match('./') || Response.redirect('./index.html');
+        }
+        return caches.match(request) || Response.error();
+      });
+    })
+  );
+});
