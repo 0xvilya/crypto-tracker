@@ -1,4 +1,4 @@
-/* v6.0 */
+/* v6.1 chips i18n chart news */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }
@@ -19,105 +19,88 @@
     if (Math.abs(n) >= 1) return s + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
     return s + n.toPrecision(4);
   }
-  var TOP = [
-    ['bitcoin', 'BTC'], ['ethereum', 'ETH'], ['solana', 'SOL'], ['binancecoin', 'BNB'],
-    ['ripple', 'XRP'], ['cardano', 'ADA'], ['dogecoin', 'DOGE'], ['toncoin', 'TON'],
-    ['tron', 'TRX'], ['avalanche-2', 'AVAX'], ['chainlink', 'LINK'], ['polkadot', 'DOT'],
-    ['polygon', 'MATIC'], ['litecoin', 'LTC'], ['shiba-inu', 'SHIB'], ['pepe', 'PEPE']
-  ];
-  var SYM = {}; TOP.forEach(function (c) { SYM[c[0]] = c[1]; });
+  var I18N = {
+    en: {
+      nav_home: 'Home', nav_port: 'Portfolio', nav_news: 'News', nav_wallet: 'Wallet', nav_tools: 'Tools',
+      search: 'Search coin\u2026', watchlist: 'Watchlist', th_coin: 'Coin', th_price: 'Price', trending: 'Trending',
+      manual_port: 'Manual portfolio', port_hint: 'Tap BTC / ETH / SOL\u2026 \u2192 qty \u2192 +.',
+      lbl_coin: 'Coin', lbl_qty: 'Qty', lbl_buy: 'Buy price', btn_add: '+ Add asset', total: 'Total',
+      pnl_calc: 'P&L Calculator', lbl_date: 'Buy date', lbl_amt: 'Amount', btn_calc: 'Calculate',
+      profit: 'Profit', from_wallet: 'From wallet', connect_w: 'Connect wallet', news: 'News',
+      wallets: 'Wallets', wallet_hint: 'Tap a wallet, then paste address below.',
+      address: 'Address', chain: 'Chain', balance: 'Balance', disconnect: 'Disconnect',
+      man_addr: 'Manual address', show_bal: 'Show balance', converter: 'Converter',
+      amount: 'Amount', from: 'From', to: 'To', gas: 'Gas (ETH)', profit_t: 'Profit target',
+      invested: 'Invested', target_pct: 'Target %', months: 'Months', growth: 'Growth %/yr',
+      dominance: 'Dominance', empty: 'Empty \u2014 pick coin & +', dark: 'Dark', light: 'Light'
+    },
+    ru: {
+      nav_home: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f', nav_port: '\u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c', nav_news: '\u041d\u043e\u0432\u043e\u0441\u0442\u0438',
+      nav_wallet: '\u041a\u043e\u0448\u0435\u043b\u0451\u043a', nav_tools: '\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b',
+      search: '\u041f\u043e\u0438\u0441\u043a \u043c\u043e\u043d\u0435\u0442\u044b\u2026', watchlist: '\u0421\u043f\u0438\u0441\u043e\u043a', th_coin: '\u041c\u043e\u043d\u0435\u0442\u0430',
+      th_price: '\u0426\u0435\u043d\u0430', trending: '\u0412 \u0442\u0440\u0435\u043d\u0434\u0435',
+      manual_port: '\u0420\u0443\u0447\u043d\u043e\u0439 \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044c',
+      port_hint: '\u041d\u0430\u0436\u043c\u0438\u0442\u0435 BTC / ETH / SOL\u2026 \u2192 \u043a\u043e\u043b-\u0432\u043e \u2192 +.',
+      lbl_coin: '\u041c\u043e\u043d\u0435\u0442\u0430', lbl_qty: '\u041a\u043e\u043b-\u0432\u043e', lbl_buy: '\u0426\u0435\u043d\u0430 \u043f\u043e\u043a\u0443\u043f\u043a\u0438',
+      btn_add: '+ \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c', total: '\u0418\u0442\u043e\u0433\u043e',
+      pnl_calc: '\u041a\u0430\u043b\u044c\u043a\u0443\u043b\u044f\u0442\u043e\u0440 P&L', lbl_date: '\u0414\u0430\u0442\u0430 \u043f\u043e\u043a\u0443\u043f\u043a\u0438',
+      lbl_amt: '\u0421\u0443\u043c\u043c\u0430', btn_calc: '\u0420\u0430\u0441\u0441\u0447\u0438\u0442\u0430\u0442\u044c', profit: '\u041f\u0440\u0438\u0431\u044b\u043b\u044c',
+      from_wallet: '\u0418\u0437 \u043a\u043e\u0448\u0435\u043b\u044c\u043a\u0430', connect_w: '\u041f\u043e\u0434\u043a\u043b\u044e\u0447\u0438\u0442\u0435 \u043a\u043e\u0448\u0435\u043b\u0451\u043a',
+      news: '\u041d\u043e\u0432\u043e\u0441\u0442\u0438', wallets: '\u041a\u043e\u0448\u0435\u043b\u044c\u043a\u0438',
+      wallet_hint: '\u041d\u0430\u0436\u043c\u0438\u0442\u0435 \u043a\u043e\u0448\u0435\u043b\u0451\u043a, \u0437\u0430\u0442\u0435\u043c \u0432\u0441\u0442\u0430\u0432\u044c\u0442\u0435 \u0430\u0434\u0440\u0435\u0441.',
+      address: '\u0410\u0434\u0440\u0435\u0441', chain: '\u0421\u0435\u0442\u044c', balance: '\u0411\u0430\u043b\u0430\u043d\u0441',
+      disconnect: '\u041e\u0442\u043a\u043b\u044e\u0447\u0438\u0442\u044c', man_addr: '\u0410\u0434\u0440\u0435\u0441 \u0432\u0440\u0443\u0447\u043d\u0443\u044e',
+      show_bal: '\u041f\u043e\u043a\u0430\u0437\u0430\u0442\u044c \u0431\u0430\u043b\u0430\u043d\u0441', converter: '\u041a\u043e\u043d\u0432\u0435\u0440\u0442\u0435\u0440',
+      amount: '\u0421\u0443\u043c\u043c\u0430', from: '\u0418\u0437', to: '\u0412', gas: 'Gas (ETH)',
+      profit_t: '\u0426\u0435\u043b\u044c \u043f\u0440\u0438\u0431\u044b\u043b\u0438', invested: '\u0412\u043b\u043e\u0436\u0435\u043d\u043e',
+      target_pct: '\u0426\u0435\u043b\u044c %', months: '\u041c\u0435\u0441\u044f\u0446\u044b', growth: '\u0420\u043e\u0441\u0442 %/\u0433\u043e\u0434',
+      dominance: '\u0414\u043e\u043c\u0438\u043d\u0430\u0446\u0438\u044f',
+      empty: '\u041f\u0443\u0441\u0442\u043e \u2014 \u0432\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043c\u043e\u043d\u0435\u0442\u0443 \u0438 +',
+      dark: '\u0422\u0451\u043c\u043d\u0430\u044f', light: '\u0421\u0432\u0435\u0442\u043b\u0430\u044f'
+    }
+  };
+  function applyUI() {
+    var lang = getLang();
+    var t = I18N[lang] || I18N.en;
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n');
+      if (t[k]) el.textContent = t[k];
+    });
+    document.querySelectorAll('[data-i18n-ph]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n-ph');
+      if (t[k]) el.placeholder = t[k];
+    });
+    var tb = $('themeBtn');
+    if (tb) tb.textContent = document.body.classList.contains('light') ? t.light : t.dark;
+    localStorage.setItem('ct_lang', lang);
+  }
+  var SYM = {
+    bitcoin: 'BTC', ethereum: 'ETH', solana: 'SOL', binancecoin: 'BNB', ripple: 'XRP',
+    cardano: 'ADA', dogecoin: 'DOGE', toncoin: 'TON', tron: 'TRX', 'avalanche-2': 'AVAX',
+    chainlink: 'LINK', polkadot: 'DOT', polygon: 'MATIC', litecoin: 'LTC',
+    'shiba-inu': 'SHIB', pepe: 'PEPE'
+  };
   var COIN_COLOR = {
     bitcoin: '#f7931a', ethereum: '#627eea', solana: '#14f195', binancecoin: '#f3ba2f',
     dogecoin: '#c2a633', toncoin: '#0098ea', ripple: '#00aae4', cardano: '#0033ad',
-    litecoin: '#345d9d', polkadot: '#e6007a', chainlink: '#2a5ada', 'avalanche-2': '#e84142'
+    litecoin: '#345d9d', polkadot: '#e6007a', chainlink: '#2a5ada', 'avalanche-2': '#e84142',
+    tron: '#ff0013', polygon: '#8247e5', 'shiba-inu': '#ffa409', pepe: '#3d9a3d'
   };
-  var newsBusy = false, newsStamp = 0;
-  async function gTr(text, to) {
-    if (!text || to === 'en') return text;
-    try {
-      var r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
-        encodeURIComponent(to) + '&dt=t&q=' + encodeURIComponent(String(text).slice(0, 380)))
-        .then(function (x) { return x.json(); });
-      if (r && r[0]) {
-        var o = r[0].map(function (x) { return x[0]; }).join('');
-        if (o && !/MYMEMORY|YOU USED ALL AVAILABLE/i.test(o)) return o;
-      }
-    } catch (e) {}
-    return text;
-  }
-  async function loadNews() {
-    var box = $('newsList'); if (!box || newsBusy) return;
-    var lang = getLang();
-    var my = ++newsStamp;
-    newsBusy = true;
-    box.innerHTML = '<div class="empty">' + (lang === 'ru' ? 'Loading\u2026' : 'Loading\u2026') + '</div>';
-    try {
-      try {
-        for (var i = localStorage.length - 1; i >= 0; i--) {
-          var k = localStorage.key(i);
-          if (k && /news/i.test(k)) localStorage.removeItem(k);
-        }
-      } catch (e) {}
-      var feeds = [
-        { n: 'Cointelegraph', u: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://cointelegraph.com/rss') },
-        { n: 'CoinDesk', u: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.coindesk.com/arc/outboundfeeds/rss/') }
-      ];
-      var all = [];
-      await Promise.all(feeds.map(async function (f) {
-        try {
-          var d = await fetch(f.u).then(function (r) { return r.json(); });
-          (d.items || []).forEach(function (it) {
-            var t = String(it.title || '').trim();
-            if (!t || /MYMEMORY|YOU USED ALL AVAILABLE/i.test(t)) return;
-            all.push({ title: t, link: it.link, date: it.pubDate, src: f.n,
-              desc: (it.description || '').replace(/<[^>]+>/g, '').slice(0, 130) });
-          });
-        } catch (e) {}
-      }));
-      all.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
-      all = all.slice(0, 12);
-      if (lang === 'ru') {
-        for (var j = 0; j < all.length; j++) {
-          if (my !== newsStamp) { newsBusy = false; return; }
-          all[j].title = await gTr(all[j].title, 'ru');
-          if (all[j].desc) all[j].desc = await gTr(all[j].desc, 'ru');
-        }
-      }
-      if (my !== newsStamp || getLang() !== lang) { newsBusy = false; return; }
-      box.innerHTML = all.map(function (n, idx) {
-        var d = '';
-        try {
-          d = new Date(n.date).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', {
-            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
-          });
-        } catch (e) {}
-        return '<div class="news-item" style="animation-delay:' + (idx * 0.04) + 's"><a href="' + n.link +
-          '" target="_blank" rel="noopener">' + n.title + '</a><div class="news-meta"><span class="news-src">' +
-          n.src + '</span> ' + d + '</div></div>';
-      }).join('') || '<div class="empty">\u2014</div>';
-    } catch (e) {
-      box.innerHTML = '<div class="empty">Error</div>';
-    }
-    newsBusy = false;
-  }
-  setInterval(function () {
-    var box = $('newsList'); if (!box || newsBusy) return;
-    if (/MYMEMORY|YOU USED ALL AVAILABLE/i.test(box.innerHTML || '')) loadNews();
-  }, 1200);
-  var ls = $('langSel');
-  if (ls) ls.addEventListener('change', function () {
-    localStorage.setItem('ct_lang', ls.value);
-    loadNews();
-  });
-  document.querySelectorAll('.nav-btn').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var p = b.getAttribute('data-p');
-      if (p === 'news') setTimeout(loadNews, 80);
-      if (p === 'port') setTimeout(function () { initChips(); renderPort(); }, 100);
-      if (p === 'tools') setTimeout(initConv, 100);
+  var TOP_IDS = Object.keys(SYM);
+
+  function bindChips() {
+    var chips = $('mhChips');
+    if (!chips || chips._bound) return;
+    chips._bound = true;
+    chips.addEventListener('click', function (e) {
+      var t = e.target.closest('.mh-chip'); if (!t) return;
+      chips.querySelectorAll('.mh-chip').forEach(function (x) { x.classList.remove('on'); });
+      t.classList.add('on');
+      if ($('mhCoin')) $('mhCoin').value = t.getAttribute('data-id');
+      if ($('mhQ')) $('mhQ').value = t.getAttribute('data-sym');
+      if ($('mhPicked')) $('mhPicked').innerHTML = '<b style="color:var(--accent2)">' + t.getAttribute('data-sym') + '</b>';
     });
-  });
-  setTimeout(loadNews, 600);
+  }
 
   var priceCache = {}, portBusy = false;
   function getHold() { try { return JSON.parse(localStorage.getItem('ct_mh') || '[]'); } catch (e) { return []; } }
@@ -133,32 +116,13 @@
     } catch (e) {}
     return null;
   }
-  function initChips() {
-    if ($('mhChips')) return;
-    var form = document.querySelector('#p-port .form');
-    if (!form) return;
-    var chips = document.createElement('div');
-    chips.id = 'mhChips';
-    chips.style.cssText = 'display:flex;flex-wrap:wrap;gap:.35rem;margin:.55rem 0 .2rem';
-    chips.innerHTML = TOP.map(function (c) {
-      return '<button type="button" class="tab mh-chip" data-id="' + c[0] + '" data-sym="' + c[1] + '">' + c[1] + '</button>';
-    }).join('');
-    form.parentNode.insertBefore(chips, form.nextSibling);
-    chips.addEventListener('click', function (e) {
-      var t = e.target.closest('.mh-chip'); if (!t) return;
-      chips.querySelectorAll('.mh-chip').forEach(function (x) { x.classList.remove('on'); });
-      t.classList.add('on');
-      if ($('mhCoin')) $('mhCoin').value = t.getAttribute('data-id');
-      if ($('mhQ')) $('mhQ').value = t.getAttribute('data-sym');
-      if ($('mhPicked')) $('mhPicked').innerHTML = '<b style="color:var(--accent2)">' + t.getAttribute('data-sym') + '</b>';
-    });
-  }
   async function renderPort() {
     var box = $('mhList'), tot = $('mhTotal'); if (!box || portBusy) return;
     portBusy = true;
     var hold = getHold(), cur = getCur();
+    var t = I18N[getLang()] || I18N.en;
     if (!hold.length) {
-      box.innerHTML = '<div class="empty">Empty \u2014 pick coin & +</div>';
+      box.innerHTML = '<div class="empty">' + t.empty + '</div>';
       if (tot) tot.style.display = 'none';
       var cw = $('portChartWrap'); if (cw) cw.style.display = 'none';
       portBusy = false; return;
@@ -174,7 +138,7 @@
     for (var i = 0; i < merged.length; i++) {
       var h = merged[i];
       var price = await getPrice(h.id);
-      var sym = SYM[h.id] || h.id.slice(0, 6).toUpperCase();
+      var sym = SYM[h.id] || (h.id || '').toUpperCase().slice(0, 6);
       var val = price != null ? price * h.qty : null;
       if (val != null) totalVal += val;
       var cost = h.buy > 0 ? h.buy * h.qty : 0;
@@ -222,53 +186,56 @@
       slices.forEach(function (s, idx) {
         var ang = (s.val / totalVal) * Math.PI * 2;
         var col = COIN_COLOR[s.id] || fb[idx % fb.length];
-        ctx.beginPath(); ctx.arc(cx, cy, R + 3, start, start + ang);
-        ctx.strokeStyle = col; ctx.globalAlpha = 0.35; ctx.lineWidth = 6; ctx.stroke();
+        ctx.beginPath(); ctx.arc(cx, cy, R + 4, start, start + ang);
+        ctx.strokeStyle = col; ctx.globalAlpha = 0.4; ctx.lineWidth = 8; ctx.stroke();
         ctx.globalAlpha = 1;
         ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, start, start + ang); ctx.closePath();
         ctx.fillStyle = col; ctx.fill();
-        if (ang > 0.3) {
+        if (ang > 0.28) {
           var mid = start + ang / 2;
           ctx.fillStyle = '#fff'; ctx.font = 'bold 12px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
           ctx.fillText(s.sym, cx + Math.cos(mid) * R * 0.65, cy + Math.sin(mid) * R * 0.65);
         }
         start += ang; s._c = col;
       });
-      ctx.beginPath(); ctx.arc(cx, cy, R * 0.52, 0, Math.PI * 2);
+      ctx.beginPath(); ctx.arc(cx, cy, R * 0.5, 0, Math.PI * 2);
       ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--card').trim() || '#160f28';
       ctx.fill();
       if (leg) {
         leg.innerHTML = slices.map(function (s) {
           return '<span style="display:inline-flex;align-items:center;gap:.3rem;margin:.2rem .45rem">' +
             '<span style="width:9px;height:9px;border-radius:50%;background:' + s._c +
-            ';box-shadow:0 0 6px ' + s._c + ';display:inline-block"></span>' +
+            ';box-shadow:0 0 8px ' + s._c + ';display:inline-block"></span>' +
             s.sym + ' ' + ((s.val / totalVal) * 100).toFixed(0) + '%</span>';
         }).join('');
       }
     } else if (wrap) wrap.style.display = 'none';
     portBusy = false;
   }
+
   var mhAdd = $('mhAdd');
   if (mhAdd) {
     mhAdd.addEventListener('click', function () {
-      setTimeout(function () {
-        var id = ($('mhCoin') || {}).value;
-        var qty = parseFloat(($('mhQty') || {}).value);
-        var buy = parseFloat(($('mhBuy') || {}).value) || 0;
-        if (!id || !(qty > 0)) return;
-        var hold = getHold();
-        var buyKey = buy > 0 ? +(+buy).toFixed(8) : 0;
-        var found = -1;
-        for (var i = 0; i < hold.length; i++) {
-          var b = hold[i].buy > 0 ? +(+hold[i].buy).toFixed(8) : 0;
-          if (hold[i].id === id && b === buyKey) { found = i; break; }
-        }
-        if (found >= 0) hold[found].qty = (+hold[found].qty) + qty;
-        else hold.push({ id: id, qty: qty, buy: buy });
-        setHold(hold);
-        renderPort();
-      }, 50);
-      setTimeout(renderPort, 600);
+      var id = ($('mhCoin') || {}).value;
+      var qty = parseFloat(($('mhQty') || {}).value);
+      var buy = parseFloat(($('mhBuy') || {}).value) || 0;
+      if (!id || !(qty > 0)) {
+        toast(getLang() === 'ru' ? '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043c\u043e\u043d\u0435\u0442\u0443 \u0438 \u043a\u043e\u043b\u0438\u0447\u0435\u0441\u0442\u0432\u043e' : 'Pick coin and qty');
+        return;
+      }
+      var hold = getHold();
+      var buyKey = buy > 0 ? +(+buy).toFixed(8) : 0;
+      var found = -1;
+      for (var i = 0; i < hold.length; i++) {
+        var b = hold[i].buy > 0 ? +(+hold[i].buy).toFixed(8) : 0;
+        if (hold[i].id === id && b === buyKey) { found = i; break; }
+      }
+      if (found >= 0) hold[found].qty = (+hold[found].qty) + qty;
+      else hold.push({ id: id, qty: qty, buy: buy });
+      setHold(hold);
+      if ($('mhQty')) $('mhQty').value = '';
+      renderPort();
+      toast(getLang() === 'ru' ? '\u0414\u043e\u0431\u0430\u0432\u043b\u0435\u043d\u043e' : 'Added');
     });
   }
   var mhList = $('mhList');
@@ -276,8 +243,7 @@
     mhList.addEventListener('click', function (e) {
       var btn = e.target.closest('.mh-rm'); if (!btn) return;
       e.stopPropagation(); e.preventDefault();
-      var indices = (btn.getAttribute('data-indices') || btn.getAttribute('data-i') || '')
-        .split(',').map(Number).filter(function (n) { return !isNaN(n); });
+      var indices = (btn.getAttribute('data-indices') || '').split(',').map(Number).filter(function (n) { return !isNaN(n); });
       if (!indices.length) return;
       var hold = getHold();
       indices.sort(function (a, b) { return b - a; }).forEach(function (i) {
@@ -287,23 +253,92 @@
       renderPort();
     }, true);
   }
-  var themeBtn = $('themeBtn');
-  if (themeBtn) themeBtn.addEventListener('click', function () { setTimeout(renderPort, 350); });
-  setTimeout(function () { initChips(); renderPort(); }, 500);
-  setTimeout(renderPort, 1800);
+
+  var newsBusy = false, newsStamp = 0;
+  async function gTr(text, to) {
+    if (!text || to === 'en') return text;
+    try {
+      var r = await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' +
+        encodeURIComponent(to) + '&dt=t&q=' + encodeURIComponent(String(text).slice(0, 380)))
+        .then(function (x) { return x.json(); });
+      if (r && r[0]) {
+        var o = r[0].map(function (x) { return x[0]; }).join('');
+        if (o && !/MYMEMORY|YOU USED ALL AVAILABLE/i.test(o)) return o;
+      }
+    } catch (e) {}
+    return text;
+  }
+  async function loadNews() {
+    var box = $('newsList'); if (!box || newsBusy) return;
+    var lang = getLang();
+    var my = ++newsStamp;
+    newsBusy = true;
+    box.innerHTML = '<div class="empty">' + (lang === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026' : 'Loading\u2026') + '</div>';
+    try {
+      try {
+        for (var i = localStorage.length - 1; i >= 0; i--) {
+          var k = localStorage.key(i);
+          if (k && /news/i.test(k)) localStorage.removeItem(k);
+        }
+      } catch (e) {}
+      var feeds = [
+        { n: 'Cointelegraph', u: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://cointelegraph.com/rss') },
+        { n: 'CoinDesk', u: 'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent('https://www.coindesk.com/arc/outboundfeeds/rss/') }
+      ];
+      var all = [];
+      await Promise.all(feeds.map(async function (f) {
+        try {
+          var d = await fetch(f.u).then(function (r) { return r.json(); });
+          (d.items || []).forEach(function (it) {
+            var title = String(it.title || '').trim();
+            if (!title || /MYMEMORY|YOU USED ALL AVAILABLE/i.test(title)) return;
+            all.push({ title: title, link: it.link, date: it.pubDate, src: f.n });
+          });
+        } catch (e) {}
+      }));
+      all.sort(function (a, b) { return new Date(b.date) - new Date(a.date); });
+      all = all.slice(0, 12);
+      if (lang === 'ru') {
+        for (var j = 0; j < all.length; j++) {
+          if (my !== newsStamp) { newsBusy = false; return; }
+          all[j].title = await gTr(all[j].title, 'ru');
+        }
+      }
+      if (my !== newsStamp || getLang() !== lang) { newsBusy = false; return; }
+      box.innerHTML = all.map(function (n, idx) {
+        var d = '';
+        try {
+          d = new Date(n.date).toLocaleString(lang === 'ru' ? 'ru-RU' : 'en-US', {
+            day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit'
+          });
+        } catch (e) {}
+        return '<div class="news-item" style="animation-delay:' + (idx * 0.04) + 's"><a href="' + n.link +
+          '" target="_blank" rel="noopener">' + n.title + '</a><div class="news-meta"><span class="news-src">' +
+          n.src + '</span> ' + d + '</div></div>';
+      }).join('') || '<div class="empty">\u2014</div>';
+    } catch (e) {
+      box.innerHTML = '<div class="empty">Error</div>';
+    }
+    newsBusy = false;
+  }
+  setInterval(function () {
+    var box = $('newsList'); if (!box || newsBusy) return;
+    if (/MYMEMORY|YOU USED ALL AVAILABLE/i.test(box.innerHTML || '')) loadNews();
+  }, 1500);
 
   async function initConv() {
     var from = $('convFrom'), to = $('convTo'), amt = $('convAmt'), out = $('convOut');
     if (!from || !to) return;
-    var cur = getCur();
-    var prices = {};
+    var cur = getCur(), prices = {};
     try {
-      var ids = TOP.map(function (c) { return c[0]; }).join(',');
+      var ids = TOP_IDS.join(',');
       var d = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=' + ids + '&vs_currencies=' + cur)
         .then(function (r) { return r.json(); });
-      TOP.forEach(function (c) { if (d[c[0]]) prices[c[0]] = d[c[0]][cur]; });
+      TOP_IDS.forEach(function (id) { if (d[id]) prices[id] = d[id][cur]; });
     } catch (e) {}
-    var opts = TOP.map(function (c) { return '<option value="' + c[0] + '">' + c[1] + '</option>'; }).join('');
+    var opts = TOP_IDS.map(function (id) {
+      return '<option value="' + id + '">' + (SYM[id] || id) + '</option>';
+    }).join('');
     from.innerHTML = opts;
     to.innerHTML = opts + '<option value="usd">USD</option><option value="eur">EUR</option><option value="rub">RUB</option>';
     from.value = 'bitcoin'; to.value = 'ethereum';
@@ -323,7 +358,6 @@
     if (amt) amt.oninput = go;
     from.onchange = go; to.onchange = go; go();
   }
-  setTimeout(initConv, 700);
 
   async function loadFG() {
     var chip = $('fgChip'); if (!chip) return;
@@ -335,13 +369,12 @@
       chip.innerHTML = 'FG: <b style="color:' + col + '">' + n + '</b>';
     } catch (e) {}
   }
-  setTimeout(loadFG, 400);
 
   document.addEventListener('click', function (e) {
     var card = e.target.closest('.w-card[data-wid="tonkeeper"], .w-card[data-wid="ton"]');
     if (!card) return;
     e.preventDefault(); e.stopPropagation();
-    toast('Copy address in Tonkeeper and paste below');
+    toast(getLang() === 'ru' ? '\u0421\u043a\u043e\u043f\u0438\u0440\u0443\u0439\u0442\u0435 \u0430\u0434\u0440\u0435\u0441 \u0432 Tonkeeper' : 'Copy address in Tonkeeper');
     var mc = $('manChain'); if (mc) mc.value = 'ton';
     var inp = $('manAddr'); if (inp) setTimeout(function () { inp.focus(); }, 150);
   }, true);
@@ -358,16 +391,48 @@
     modal.style.cssText = 'display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.55);align-items:flex-end;justify-content:center;backdrop-filter:blur(6px)';
     modal.innerHTML = '<div style="background:var(--card);backdrop-filter:blur(20px);border-radius:20px 20px 0 0;padding:1.3rem;width:100%;max-width:520px;max-height:70vh;overflow:auto;border:1px solid var(--border)"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem"><h2 id="legalTitle" style="margin:0;font-size:1.1rem"></h2><button type="button" id="legalClose" class="btn-ghost">\u00d7</button></div><div id="legalBody" style="font-size:.88rem;line-height:1.55;color:var(--muted)"></div></div>';
     document.body.appendChild(modal);
-    function open(t, h) { $('legalTitle').textContent = t; $('legalBody').innerHTML = h; modal.style.display = 'flex'; }
+    function open(title, html) { $('legalTitle').textContent = title; $('legalBody').innerHTML = html; modal.style.display = 'flex'; }
     $('aboutLink').onclick = function (e) {
       e.preventDefault();
-      open('About', '<p><b>Crypto Tracker</b> is a free portfolio &amp; market tracker.</p><p>Prices: CoinGecko. Charts: TradingView. News: Cointelegraph / CoinDesk.</p><p>Not financial advice.</p>');
+      open('About', '<p><b>Crypto Tracker</b> \u2014 free portfolio tracker.</p><p>Not financial advice.</p>');
     };
     $('privacyLink').onclick = function (e) {
       e.preventDefault();
-      open('Privacy', '<p>We do not collect personal data. Portfolio lives only in browser localStorage.</p>');
+      open('Privacy', '<p>No personal data collected. Portfolio only in localStorage.</p>');
     };
     $('legalClose').onclick = function () { modal.style.display = 'none'; };
     modal.onclick = function (e) { if (e.target === modal) modal.style.display = 'none'; };
   }, 400);
+
+  var ls = $('langSel');
+  if (ls) {
+    var saved = localStorage.getItem('ct_lang');
+    if (saved === 'ru' || saved === 'en') ls.value = saved;
+    ls.addEventListener('change', function () {
+      localStorage.setItem('ct_lang', ls.value);
+      applyUI();
+      loadNews();
+      renderPort();
+    });
+  }
+  document.querySelectorAll('.nav-btn').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var p = b.getAttribute('data-p');
+      if (p === 'news') setTimeout(loadNews, 80);
+      if (p === 'port') setTimeout(renderPort, 100);
+      if (p === 'tools') setTimeout(initConv, 100);
+    });
+  });
+  var themeBtn = $('themeBtn');
+  if (themeBtn) themeBtn.addEventListener('click', function () {
+    setTimeout(function () { applyUI(); renderPort(); }, 200);
+  });
+
+  applyUI();
+  bindChips();
+  setTimeout(loadFG, 400);
+  setTimeout(loadNews, 500);
+  setTimeout(renderPort, 600);
+  setTimeout(initConv, 700);
+  setTimeout(renderPort, 2000);
 })();
