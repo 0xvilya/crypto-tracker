@@ -1,4 +1,4 @@
-/* Crypto Tracker Core v8.0 */
+/* Crypto Tracker Core v8.1 */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }
@@ -24,24 +24,24 @@
   })();
 
   var COINS = {
-    bitcoin:   { sym: 'BTC',  pair: 'BTCUSDT',  name: 'Bitcoin',   color: '#f7931a' },
-    ethereum:  { sym: 'ETH',  pair: 'ETHUSDT',  name: 'Ethereum',  color: '#627eea' },
-    solana:    { sym: 'SOL',  pair: 'SOLUSDT',  name: 'Solana',    color: '#14f195' },
-    binancecoin:{ sym: 'BNB', pair: 'BNBUSDT',  name: 'BNB',       color: '#f3ba2f' },
-    ripple:    { sym: 'XRP',  pair: 'XRPUSDT',  name: 'XRP',       color: '#00aae4' },
-    cardano:   { sym: 'ADA',  pair: 'ADAUSDT',  name: 'Cardano',   color: '#0033ad' },
-    dogecoin:  { sym: 'DOGE', pair: 'DOGEUSDT', name: 'Dogecoin',  color: '#c2a633' },
-    litecoin:  { sym: 'LTC',  pair: 'LTCUSDT',  name: 'Litecoin',  color: '#345d9d' },
+    bitcoin: { sym: 'BTC', pair: 'BTCUSDT', name: 'Bitcoin', color: '#f7931a' },
+    ethereum: { sym: 'ETH', pair: 'ETHUSDT', name: 'Ethereum', color: '#627eea' },
+    solana: { sym: 'SOL', pair: 'SOLUSDT', name: 'Solana', color: '#14f195' },
+    binancecoin: { sym: 'BNB', pair: 'BNBUSDT', name: 'BNB', color: '#f3ba2f' },
+    ripple: { sym: 'XRP', pair: 'XRPUSDT', name: 'XRP', color: '#00aae4' },
+    cardano: { sym: 'ADA', pair: 'ADAUSDT', name: 'Cardano', color: '#0033ad' },
+    dogecoin: { sym: 'DOGE', pair: 'DOGEUSDT', name: 'Dogecoin', color: '#c2a633' },
+    litecoin: { sym: 'LTC', pair: 'LTCUSDT', name: 'Litecoin', color: '#345d9d' },
     chainlink: { sym: 'LINK', pair: 'LINKUSDT', name: 'Chainlink', color: '#2a5ada' },
-    polkadot:  { sym: 'DOT',  pair: 'DOTUSDT',  name: 'Polkadot',  color: '#e6007a' },
+    polkadot: { sym: 'DOT', pair: 'DOTUSDT', name: 'Polkadot', color: '#e6007a' },
     'avalanche-2': { sym: 'AVAX', pair: 'AVAXUSDT', name: 'Avalanche', color: '#e84142' },
-    tron:      { sym: 'TRX',  pair: 'TRXUSDT',  name: 'TRON',      color: '#ff0013' },
+    tron: { sym: 'TRX', pair: 'TRXUSDT', name: 'TRON', color: '#ff0013' },
     'matic-network': { sym: 'POL', pair: 'POLUSDT', name: 'Polygon', color: '#8247e5' },
     'shiba-inu': { sym: 'SHIB', pair: 'SHIBUSDT', name: 'Shiba Inu', color: '#ffa409' },
-    pepe:      { sym: 'PEPE', pair: 'PEPEUSDT', name: 'Pepe',      color: '#3d9a3d' },
-    sui:       { sym: 'SUI',  pair: 'SUIUSDT',  name: 'Sui',       color: '#4da2ff' },
-    near:      { sym: 'NEAR', pair: 'NEARUSDT', name: 'NEAR',      color: '#00c08b' },
-    toncoin:   { sym: 'TON',  pair: null,       name: 'Toncoin',   color: '#0098ea' }
+    pepe: { sym: 'PEPE', pair: 'PEPEUSDT', name: 'Pepe', color: '#3d9a3d' },
+    sui: { sym: 'SUI', pair: 'SUIUSDT', name: 'Sui', color: '#4da2ff' },
+    near: { sym: 'NEAR', pair: 'NEARUSDT', name: 'NEAR', color: '#00c08b' },
+    toncoin: { sym: 'TON', pair: null, name: 'Toncoin', color: '#0098ea' }
   };
   var PAIR_TO_ID = {};
   Object.keys(COINS).forEach(function (id) {
@@ -216,7 +216,8 @@
         var k = await fetch('https://api.binance.us/api/v3/klines?symbol=' + meta.pair + '&interval=1h&limit=168').then(function (r) { return r.json(); });
         if (Array.isArray(k) && k.length) {
           chartData = k.map(function (row) {
-            return { t: row[0], v: toCur(parseFloat(row[4])) };
+            var closePx = parseFloat(row[4]);
+            return { t: row[0], v: toCur(closePx) };
           });
         }
       } catch (e) {}
@@ -526,7 +527,7 @@
       var qty = parseFloat(($('mhQty') || {}).value);
       var buy = parseFloat(($('mhBuy') || {}).value) || 0;
       if (!id || !qty || qty <= 0) {
-        toast(lang() === 'ru' ? '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043c\u043e\u043d\u0435\u0442\u0443 \u0438 \u043a\u043e\u043b-\u0432\u043e' : 'Pick coin and quantity');
+        toast(lang() === 'ru' ? '\u0412\u044b\u0431\u0435\u0440\u0438\u0442\u0435 \u043c\u043e\u043d\u0435\u0442\u0443' : 'Pick coin and quantity');
         return;
       }
       var hold = getHold();
@@ -543,7 +544,7 @@
     var card = e.target.closest('.w-card[data-wid="tonkeeper"]');
     if (!card) return;
     e.preventDefault(); e.stopPropagation();
-    toast(lang() === 'ru' ? '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 TON-\u0430\u0434\u0440\u0435\u0441 \u0432\u0440\u0443\u0447\u043d\u0443\u044e' : 'Paste TON address below', 3500);
+    toast(lang() === 'ru' ? '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 TON-\u0430\u0434\u0440\u0435\u0441' : 'Paste TON address below', 3500);
     var chain = $('manChain'); if (chain) chain.value = 'ton';
     var addr = $('manAddr'); if (addr) { addr.focus(); addr.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   }, true);
