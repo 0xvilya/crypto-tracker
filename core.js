@@ -17,7 +17,7 @@
     var e = $('toast'); if (!e) return;
     new MutationObserver(function () {
       var t = e.textContent || '';
-      if (/\u0446\u0435\u043d\u044b \u043e\u0431\u043d\u043e\u0432\u043b|prices updated|updated/i.test(t)) {
+      if (/updated|\u043e\u0431\u043d\u043e\u0432\u043b/i.test(t)) {
         e.classList.remove('show'); e.textContent = '';
       }
     }).observe(e, { childList: true, characterData: true, subtree: true });
@@ -196,8 +196,7 @@
     }
     if ($('ex')) {
       $('ex').innerHTML =
-        '<a href="https://www.binance.com/en/trade/' + meta.sym + '_USDT" target="_blank" rel="noopener">Binance</a>' +
-        '<a href="https://www.bybit.com/trade/usdt/' + meta.sym + 'USDT" target="_blank" rel="noopener">Bybit</a>' +
+        '<a href="https://www.binance.com/en/trade/' + meta.sym + '_USDT" target="_blank" rel="noopener">Binance</a> ' +
         '<a href="https://www.coingecko.com/en/coins/' + id + '" target="_blank" rel="noopener">CoinGecko</a>';
     }
     loadChart(id, meta);
@@ -216,7 +215,9 @@
       try {
         var k = await fetch('https://api.binance.us/api/v3/klines?symbol=' + meta.pair + '&interval=1h&limit=168').then(function (r) { return r.json(); });
         if (Array.isArray(k) && k.length) {
-          chartData = k.map(function (row) { return { t: row[0], v: toCur(parseFloat(row[4])); }; });
+          chartData = k.map(function (row) {
+            return { t: row[0], v: toCur(parseFloat(row[4])) };
+          });
         }
       } catch (e) {}
     }
@@ -226,7 +227,9 @@
           if (!r.ok) return null; return r.json();
         });
         if (cg && cg.prices) {
-          chartData = cg.prices.map(function (p) { return { t: p[0], v: toCur(p[1]); }; });
+          chartData = cg.prices.map(function (p) {
+            return { t: p[0], v: toCur(p[1]) };
+          });
         }
       } catch (e) {}
     }
@@ -421,31 +424,26 @@
     try {
       var eth = await fetch('https://api.etherscan.io/api?module=gastracker&action=gasoracle').then(function (r) { return r.json(); });
       if (eth && eth.result && eth.result.ProposeGasPrice)
-        rows.push({ c: 'Ethereum', l: eth.result.SafeGasPrice, a: eth.result.ProposeGasPrice, h: eth.result.FastGasPrice, u: 'gwei \u00b7 ETH' });
+        rows.push({ c: 'Ethereum', l: eth.result.SafeGasPrice, a: eth.result.ProposeGasPrice, h: eth.result.FastGasPrice, u: 'gwei ETH' });
     } catch (e) {}
     try {
       var poly = await fetch('https://gasstation.polygon.technology/v2').then(function (r) { return r.json(); });
       if (poly && poly.standard)
-        rows.push({ c: 'Polygon', l: Math.round((poly.safeLow && poly.safeLow.maxFee) || 30), a: Math.round((poly.standard && poly.standard.maxFee) || 50), h: Math.round((poly.fast && poly.fast.maxFee) || 80), u: 'gwei \u00b7 POL' });
+        rows.push({ c: 'Polygon', l: Math.round((poly.safeLow && poly.safeLow.maxFee) || 30), a: Math.round((poly.standard && poly.standard.maxFee) || 50), h: Math.round((poly.fast && poly.fast.maxFee) || 80), u: 'gwei POL' });
     } catch (e) {}
-    rows.push({ c: 'BNB Chain', l: '~3', a: '~5', h: '~8', u: 'gwei \u00b7 BNB*' });
-    rows.push({ c: 'Arbitrum', l: '~0.01', a: '~0.1', h: '~0.3', u: 'gwei \u00b7 ETH*' });
-    rows.push({ c: 'Optimism', l: '~0.001', a: '~0.01', h: '~0.05', u: 'gwei \u00b7 ETH*' });
-    rows.push({ c: 'Base', l: '~0.001', a: '~0.01', h: '~0.05', u: 'gwei \u00b7 ETH*' });
+    rows.push({ c: 'BNB Chain', l: '~3', a: '~5', h: '~8', u: 'gwei BNB*' });
+    rows.push({ c: 'Arbitrum', l: '~0.01', a: '~0.1', h: '~0.3', u: 'gwei ETH*' });
+    rows.push({ c: 'Optimism', l: '~0.001', a: '~0.01', h: '~0.05', u: 'gwei ETH*' });
+    rows.push({ c: 'Base', l: '~0.001', a: '~0.01', h: '~0.05', u: 'gwei ETH*' });
     rows.push({ c: 'Solana', l: '~0.00001', a: '~0.00005', h: '~0.0002', u: 'SOL*' });
-    lastGas = '<div style="font-size:.68rem;color:var(--muted);margin-bottom:.35rem">Low / Avg / Fast \u00b7 *approx</div>' +
+    lastGas = '<div style="font-size:.68rem;color:var(--muted);margin-bottom:.35rem">Low / Avg / Fast *approx</div>' +
       rows.map(function (r) {
         return '<div style="display:flex;justify-content:space-between;gap:.4rem;padding:.35rem 0;border-bottom:1px solid var(--border);font-size:.78rem">' +
-          '<b style="flex-shrink:0">' + r.c + '</b><span style="text-align:right">' + r.l + ' / <b style="color:var(--accent2)">' + r.a + '</b> / ' + r.h +
+          '<b>' + r.c + '</b><span style="text-align:right">' + r.l + ' / <b style="color:var(--accent2)">' + r.a + '</b> / ' + r.h +
           ' <span style="color:var(--muted);font-size:.65rem">' + r.u + '</span></span></div>';
       }).join('');
     box.innerHTML = lastGas;
   }
-  setInterval(function () {
-    var box = $('gasBox');
-    if (box && lastGas && ((box.innerHTML || '').indexOf('Etherscan') >= 0 || (box.innerHTML || '').length < 40))
-      box.innerHTML = lastGas;
-  }, 600);
 
   function setupConverter() {
     var from = $('convFrom'), to = $('convTo');
@@ -474,10 +472,6 @@
     await ensurePrices(getList().concat(Object.keys(COINS)));
     await renderWatch(); await renderTrends(); await renderPort();
   }
-
-  window.renderManual = function () { renderPort(); };
-  window.loadWatch = function () { renderWatch(); };
-  window.loadTV = function () {};
 
   var curSel = $('curSel');
   if (curSel) {
@@ -549,12 +543,11 @@
     var card = e.target.closest('.w-card[data-wid="tonkeeper"]');
     if (!card) return;
     e.preventDefault(); e.stopPropagation();
-    toast(lang() === 'ru' ? '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 TON-\u0430\u0434\u0440\u0435\u0441 \u0432 \u00ab\u0410\u0434\u0440\u0435\u0441 \u0432\u0440\u0443\u0447\u043d\u0443\u044e\u00bb' : 'Paste TON address in Manual address', 3500);
+    toast(lang() === 'ru' ? '\u0412\u0441\u0442\u0430\u0432\u044c\u0442\u0435 TON-\u0430\u0434\u0440\u0435\u0441 \u0432\u0440\u0443\u0447\u043d\u0443\u044e' : 'Paste TON address below', 3500);
     var chain = $('manChain'); if (chain) chain.value = 'ton';
     var addr = $('manAddr'); if (addr) { addr.focus(); addr.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
   }, true);
 
-  /* Profit target + DCA */
   function wireTools() {
     var inv = $('tpInv'), pctEl = $('tpPct'), out = $('tpOut');
     function tp() {
@@ -580,6 +573,9 @@
     if (dg) dg.addEventListener('input', dca);
   }
 
+  var refBtn = $('refBtn');
+  if (refBtn) refBtn.addEventListener('click', function () { softRefresh(); });
+
   setTimeout(async function () {
     await softRefresh();
     setupConverter();
@@ -591,7 +587,7 @@
 
   var I18N = {
     en: { nav_home: 'Home', nav_port: 'Portfolio', nav_news: 'News', nav_wallet: 'Wallet', nav_tools: 'Tools', watchlist: 'Watchlist', trending: 'Trending', manual_port: 'Manual portfolio', total: 'Total', converter: 'Converter', gas: 'Gas fees', btn_add: '+ Add' },
-    ru: { nav_home: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f', nav_port: '\u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c', nav_news: '\u041d\u043e\u0432\u043e\u0441\u0442\u0438', nav_wallet: '\u041a\u043e\u0448\u0435\u043b\u0451\u043a', nav_tools: '\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b', watchlist: '\u0421\u043f\u0438\u0441\u043e\u043a', trending: '\u0412 \u0442\u0440\u0435\u043d\u0434\u0435', manual_port: '\u0420\u0443\u0447\u043d\u043e\u0439 \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044c', total: '\u0418\u0442\u043e\u0433\u043e', converter: '\u041a\u043e\u043d\u0432\u0435\u0440\u0442\u0435\u0440', gas: '\u041a\u043e\u043c\u0438\u0441\u0441\u0438\u0438 \u0433\u0430\u0437', btn_add: '+ \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c' }
+    ru: { nav_home: '\u0413\u043b\u0430\u0432\u043d\u0430\u044f', nav_port: '\u041f\u043e\u0440\u0442\u0444\u0435\u043b\u044c', nav_news: '\u041d\u043e\u0432\u043e\u0441\u0442\u0438', nav_wallet: '\u041a\u043e\u0448\u0435\u043b\u0451\u043a', nav_tools: '\u0418\u043d\u0441\u0442\u0440\u0443\u043c\u0435\u043d\u0442\u044b', watchlist: '\u0421\u043f\u0438\u0441\u043e\u043a', trending: '\u0412 \u0442\u0440\u0435\u043d\u0434\u0435', manual_port: '\u0420\u0443\u0447\u043d\u043e\u0439 \u043f\u043e\u0440\u0442\u0444\u0435\u043b\u044c', total: '\u0418\u0442\u043e\u0433\u043e', converter: '\u041a\u043e\u043d\u0432\u0435\u0440\u0442\u0435\u0440', gas: '\u041a\u043e\u043c\u0438\u0441\u0441\u0438\u0438', btn_add: '+ \u0414\u043e\u0431\u0430\u0432\u0438\u0442\u044c' }
   };
   function applyLang() {
     var L = I18N[lang()] || I18N.en;
