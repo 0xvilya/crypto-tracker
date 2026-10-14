@@ -10,7 +10,7 @@
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
 <script src="https://s3.tradingview.com/tv.js" defer></script>
-<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css?v=83"/>
 </head>
 <body>
 <header class="topbar">
@@ -159,7 +159,7 @@
     </div>
 
     <div class="card">
-      <h2 data-i18n="pnl_calc">Калькулятор P&amp;L</h2>
+      <h2 data-i18n="pnl_calc">Калькулятор P&L</h2>
       <div class="form">
         <div class="field" style="grid-column:1/-1"><label data-i18n="lbl_coin">Монета</label><select id="pnlCoin"></select></div>
         <div class="field"><label data-i18n="lbl_date">Дата</label><input type="date" id="pnlDate"/></div>
@@ -253,6 +253,16 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<script src="app.js"></script>
+<script src="app.js?v=83"></script>
+<script>
+(function(){
+  function tryBoot(){
+    var b=document.getElementById('refBtn');
+    if(b) b.click();
+  }
+  setTimeout(tryBoot, 1200);
+  setTimeout(tryBoot, 3000);
+})();
+</script>
 </body>
 </html>
