@@ -1,31 +1,17 @@
-# 💰 Crypto Tracker
+# Crypto Tracker
 
-Быстрый трекер криптовалют: цены, графики, ручной портфель, аналитика кошельков и новости.
+Live: https://0xvilya.github.io/crypto-tracker/
 
-**Live:** https://0xvilya.github.io/crypto-tracker/
+Фиолетовый крипто-трекер (RU/EN):
 
-## v95 — полная кликабельность + улучшения
+- Watchlist с иконками, ценой, 24h и APY стейкинга
+- Свечной график (OHLC tooltip при наведении)
+- Новости по монете + краткий AI-анализ
+- Gainers / Losers
+- Портфель, кошелёк (ETH/BTC/SOL/TON), DCA & стейкинг (dropdown)
+- Market Cap + BTC/ETH Dominance
+- Поиск монет, мультивалютность (USD/EUR/RUB/PLN)
+- Подсказки «?» по терминам
+- **Авто-обновление**: цены каждые 30 сек, новости каждые 2 мин
 
-- ✅ Исправлены все кнопки и навигация (event delegation + touch-action)
-- 🔍 Стабильный поиск + watchlist
-- 💰 Портфель + P&L + pie
-- 👛 Кошельки: адрес + **Tonkeeper (TON Connect)** + **MetaMask**
-- 📰 Новости, конвертер, gas, DCA, цель прибыли
-- 🌙 Фиолетовая тема сохранена, RU/EN, валюты
-- ⚡ Алерты по цене (локальные), очистка кэша
-- 🛡️ Fallback-ы API, SW v95
-
-## Возможности
-
-- Watchlist с поиском и топ-монетами
-- Детальная карточка + графики + биржи
-- Ручной портфель + аналитика
-- Подключение Tonkeeper и MetaMask
-- Конвертер, gas, DCA, доминация, Fear & Greed
-
-## Технологии
-
-- Pure HTML / CSS / JS
-- CoinGecko + Binance US + публичные RPC
-- @tonconnect/ui для TON
-- window.ethereum для MetaMask
+Чистый HTML/CSS/JS, GitHub Pages.
