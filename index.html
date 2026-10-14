@@ -3,11 +3,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<meta name="theme-color" content="#0a0a0f"/>
+<meta name="theme-color" content="#07060f"/>
 <title>Crypto Tracker</title>
 <link rel="manifest" href="manifest.json"/>
 <script src="https://s3.tradingview.com/tv.js"></script>
-<link rel="stylesheet" href="styles.css"/>
+<link rel="stylesheet" href="styles.css?v=70"/>
 </head>
 <body>
 <header class="topbar">
@@ -40,14 +40,15 @@
   <div class="card" id="detail" style="display:none">
     <div class="coin" style="margin-bottom:.6rem"><img id="dImg" src="" alt=""/><div><div class="nm" id="dName">—</div><div class="sy" id="dSym">—</div></div>
       <div style="margin-left:auto;text-align:right"><div class="pr" id="dPrice">—</div><div id="dCh">—</div></div></div>
-    <div id="tv" style="height:380px;width:100%"></div><div class="ex" id="ex" style="margin-top:.6rem"></div>
+    <div id="tv" style="height:380px;width:100%;border-radius:12px;overflow:hidden"></div>
+    <div class="ex" id="ex" style="margin-top:.6rem"></div>
   </div>
   <div class="card"><h2>Trending</h2><div id="trends" class="muted">—</div></div>
 </section>
 <section class="page" id="p-port">
   <div class="card">
     <h2>Manual portfolio</h2>
-    <p class="muted" style="margin-bottom:.5rem">Pick BTC ETH SOL… → qty → +. Same coin + same buy price merges.</p>
+    <p class="muted" style="margin-bottom:.5rem">Tap BTC / ETH / SOL… → qty → +. Same coin + same buy price merges.</p>
     <div class="form">
       <div class="field" style="grid-column:1/-1"><label>Coin</label>
         <input type="text" id="mhQ" placeholder="BTC…" autocomplete="off"/><input type="hidden" id="mhCoin"/>
@@ -55,13 +56,13 @@
       <div class="field"><label>Qty</label><input type="number" id="mhQty" min="0" step="any" placeholder="0.5"/></div>
       <div class="field"><label>Buy price</label><input type="number" id="mhBuy" min="0" step="any" placeholder="opt."/></div>
     </div>
-    <button type="button" class="btn" id="mhAdd" style="margin-top:.6rem;width:100%">+ Add</button>
-    <div id="mhList" style="margin-top:.8rem"></div>
-    <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.6rem">
-      <div class="muted">Total</div><div style="font-size:1.4rem;font-weight:700" id="mhVal">$0</div><div id="mhPnl" class="muted"></div></div>
-    <div id="portChartWrap" style="display:none;margin-top:.8rem">
-      <canvas id="portChart" width="220" height="220" style="display:block;margin:0 auto"></canvas>
-      <div id="portLegend" style="text-align:center;margin-top:.5rem;font-size:.75rem"></div></div>
+    <button type="button" class="btn" id="mhAdd" style="margin-top:.7rem;width:100%">+ Add asset</button>
+    <div id="mhList" style="margin-top:.85rem"></div>
+    <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.7rem">
+      <div class="muted">Total</div><div style="font-size:1.45rem;font-weight:700" id="mhVal">$0</div><div id="mhPnl" class="muted"></div></div>
+    <div id="portChartWrap" style="display:none;margin-top:1rem">
+      <canvas id="portChart" width="240" height="240" style="display:block;margin:0 auto"></canvas>
+      <div id="portLegend" style="text-align:center;margin-top:.6rem;font-size:.75rem"></div></div>
   </div>
   <div class="card"><h2>P&L Calculator</h2>
     <div class="form">
@@ -75,7 +76,7 @@
 </section>
 <section class="page" id="p-news">
   <div class="card"><h2>News</h2>
-    <div class="tabs" id="newsTabs" style="flex-wrap:wrap;gap:.35rem;margin-bottom:.6rem">
+    <div class="tabs" id="newsTabs" style="margin-bottom:.65rem">
       <button type="button" class="tab on" data-f="all">All</button>
       <button type="button" class="tab" data-f="BTC">Bitcoin</button>
       <button type="button" class="tab" data-f="ETH">Ethereum</button>
@@ -90,7 +91,9 @@
     <div id="outlook" class="muted" style="margin-top:.8rem"></div><div id="coinOutlook" style="margin-top:.4rem"></div></div>
 </section>
 <section class="page" id="p-wallet">
-  <div class="card"><h2>Wallets</h2><div class="w-grid" id="wGrid"></div>
+  <div class="card"><h2>Wallets</h2>
+    <p class="muted" style="margin-bottom:.6rem">Tap a wallet, then paste your address below to see balances.</p>
+    <div class="w-grid" id="wGrid"></div>
     <div id="wInfo" style="display:none;margin-top:.8rem">
       <div class="hold-row"><span>Address</span><b id="wAddr">—</b></div>
       <div class="hold-row"><span>Chain</span><b id="wChain">—</b></div>
@@ -103,8 +106,8 @@
         <option value="polygon">Polygon</option><option value="arb">Arbitrum</option>
         <option value="op">Optimism</option><option value="base">Base</option>
         <option value="sol">Solana</option><option value="ton">TON</option><option value="btc">Bitcoin</option></select></div>
-      <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="manAddr" placeholder="0x… / EQ…"/></div></div>
-    <button type="button" class="btn" id="manBtn" style="margin-top:.6rem;width:100%">Show balance</button>
+      <div class="field" style="grid-column:1/-1"><label>Address</label><input type="text" id="manAddr" placeholder="0x… / EQ… / Sol…"/></div></div>
+    <button type="button" class="btn" id="manBtn" style="margin-top:.65rem;width:100%">Show balance</button>
     <div id="manRes" class="muted" style="margin-top:.6rem"></div></div>
 </section>
 <section class="page" id="p-tools">
@@ -112,7 +115,7 @@
     <div class="field"><label>Amount</label><input type="number" id="convAmt" value="1" min="0" step="any"/></div>
     <div class="field"><label>From</label><select id="convFrom"></select></div>
     <div class="field"><label>To</label><select id="convTo"></select></div></div>
-    <div style="margin-top:.6rem;font-weight:700" id="convOut">—</div></div>
+    <div style="margin-top:.7rem;font-weight:700;font-size:1.15rem" id="convOut">—</div></div>
   <div class="card"><h2>Gas (ETH)</h2><div id="gasBox" class="muted">...</div></div>
   <div class="card"><h2>Profit target</h2><div class="form">
     <div class="field"><label>Invested</label><input type="number" id="tpInv" min="0" step="any" placeholder="1000"/></div>
@@ -128,6 +131,6 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@a1ed1254/app.js"></script>
-<script src="fix.js?v=62"></script>
+<script src="fix.js?v=70"></script>
 </body>
 </html>
