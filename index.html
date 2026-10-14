@@ -7,7 +7,7 @@
 <title>Crypto Tracker</title>
 <link rel="manifest" href="manifest.json"/>
 <script src="https://s3.tradingview.com/tv.js"></script>
-<link rel="stylesheet" href="styles.css?v=72"/>
+<link rel="stylesheet" href="styles.css?v=73"/>
 </head>
 <body>
 <header class="topbar">
@@ -48,7 +48,7 @@
 <section class="page" id="p-port">
   <div class="card">
     <h2 data-i18n="manual_port">Manual portfolio</h2>
-    <p class="muted" style="margin-bottom:.5rem" data-i18n="port_hint">Tap BTC / ETH / SOL… → qty → +.</p>
+    <p class="muted" style="margin-bottom:.5rem" data-i18n="port_hint">Tap coin → qty → +.</p>
     <div class="form">
       <div class="field" style="grid-column:1/-1"><label data-i18n="lbl_coin">Coin</label>
         <input type="text" id="mhQ" placeholder="BTC…" autocomplete="off"/><input type="hidden" id="mhCoin"/>
@@ -74,7 +74,7 @@
       <button type="button" class="tab mh-chip" data-id="shiba-inu" data-sym="SHIB">SHIB</button>
       <button type="button" class="tab mh-chip" data-id="pepe" data-sym="PEPE">PEPE</button>
     </div>
-    <button type="button" class="btn" id="mhAdd" style="margin-top:.5rem" data-i18n="btn_add">+ Add asset</button>
+    <button type="button" class="btn" id="mhAdd" style="margin-top:.5rem" data-i18n="btn_add">+ Add</button>
     <div id="mhList" style="margin-top:.85rem"></div>
     <div id="mhTotal" class="pnl-box" style="display:none;margin-top:.7rem">
       <div class="muted" data-i18n="total">Total</div><div style="font-size:1.35rem;font-weight:700;word-break:break-all" id="mhVal">$0</div><div id="mhPnl" class="muted"></div></div>
@@ -110,7 +110,7 @@
 </section>
 <section class="page" id="p-wallet">
   <div class="card"><h2 data-i18n="wallets">Wallets</h2>
-    <p class="muted" style="margin-bottom:.6rem" data-i18n="wallet_hint">Tap a wallet, then paste address below.</p>
+    <p class="muted" style="margin-bottom:.6rem" data-i18n="wallet_hint">Tap wallet to connect</p>
     <div class="w-grid" id="wGrid"></div>
     <div id="wInfo" style="display:none;margin-top:.8rem">
       <div class="hold-row"><span data-i18n="address">Address</span><b id="wAddr" style="word-break:break-all;font-size:.75rem">—</b></div>
@@ -149,6 +149,6 @@
 </div>
 <div class="toast" id="toast"></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@a1ed1254/app.js"></script>
-<script src="fix.js?v=72"></script>
+<script src="fix.js?v=73"></script>
 </body>
 </html>
