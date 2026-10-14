@@ -134,14 +134,14 @@ body::after{
   width:100%;max-width:100%;overflow:hidden;
 }
 .table-x{overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%;max-width:100%}
-table{width:100%;border-collapse:collapse;font-size:.8rem;table-layout:fixed}
+table{width:100%;border-collapse:collapse;font-size:.8rem;table-layout:auto}
 th{text-align:left;color:var(--muted);font-weight:500;padding:.35rem .25rem;border-bottom:1px solid var(--border);font-size:.65rem}
-td{padding:.45rem .25rem;border-bottom:1px solid var(--border);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+td{padding:.45rem .25rem;border-bottom:1px solid var(--border)}
 .coin{display:flex;align-items:center;gap:.4rem;min-width:0}
 .coin img{width:28px;height:28px;border-radius:50%;flex-shrink:0}
-.coin .nm{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.coin .nm{font-weight:600;max-width:72px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .coin .sy{font-size:.68rem;color:var(--muted)}
-.pr{font-weight:700;font-size:1rem}
+.pr{font-weight:700;font-size:.78rem;white-space:nowrap}
 .news-item{padding:.7rem 0;border-bottom:1px solid var(--border);overflow:hidden}
 .news-item a{
   color:var(--text);text-decoration:none;font-weight:600;font-size:.88rem;line-height:1.35;
@@ -150,12 +150,14 @@ td{padding:.45rem .25rem;border-bottom:1px solid var(--border);overflow:hidden;t
 .news-item a:hover{color:var(--accent2)}
 .news-meta{margin-top:.25rem;font-size:.68rem;color:var(--muted);display:flex;gap:.35rem;align-items:center;flex-wrap:wrap}
 .news-src{background:var(--elev);border:1px solid var(--border);border-radius:5px;padding:.08rem .35rem;font-size:.62rem}
-.w-grid{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;width:100%}
+.w-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.35rem;width:100%}
 .w-card{
   background:var(--elev);border:1px solid var(--border);border-radius:var(--radius-sm);
-  padding:.7rem;text-align:center;cursor:pointer;min-width:0;overflow:hidden;
+  padding:.5rem .35rem;text-align:center;cursor:pointer;min-width:0;overflow:hidden;
 }
-.w-card b{display:block;margin-top:.25rem;font-size:.8rem;overflow:hidden;text-overflow:ellipsis}
+.w-card .badge{font-size:.75rem;font-weight:700;color:var(--accent2)}
+.w-card .name{font-size:.7rem;font-weight:600;line-height:1.2;margin-top:.15rem}
+.w-card .sub{display:none}
 .search-wrap{position:relative;margin-bottom:.7rem;width:100%}
 .search-wrap input{
   width:100%;max-width:100%;background:var(--card);border:1px solid var(--border);border-radius:999px;
@@ -200,13 +202,12 @@ td{padding:.45rem .25rem;border-bottom:1px solid var(--border);overflow:hidden;t
   .card{padding:.75rem;border-radius:12px}
   .form{grid-template-columns:1fr;gap:.4rem}
   .field input,.field select{font-size:.9rem;padding:.55rem .65rem}
-  .w-grid{grid-template-columns:1fr 1fr;gap:.35rem}
   .tab,.mh-chip{font-size:.65rem;padding:.25rem .45rem}
   .nav-btn{font-size:.55rem;padding:.2rem .2rem}
   .nav-btn .nav-ico{width:18px;height:18px}
 }
-@media (max-width:340px){
+@media (max-width:360px){
+  .w-grid{grid-template-columns:repeat(2,1fr)}
   .top-actions .chip:nth-child(1),
   .top-actions .chip:nth-child(2){display:none}
-  .form{grid-template-columns:1fr}
 }
