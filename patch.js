@@ -1,4 +1,4 @@
-/* v110 — news wins over core (MutationObserver), TV, APY, gas */
+/* v111 SAFE — news without MutationObserver, TV, APY, gas */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }
@@ -14,74 +14,59 @@
     return s + n.toFixed(6);
   }
 
-  var myNews = { at: 0, items: [], filter: 'all', painting: false, tr: {} };
-  var EMPTY_RE = /^(\u2014|\u2013|-|\u2026|\.\.\.|Error|\u041d\u0435\u0442 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439|No news|\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026|Loading\u2026)?$/;
+  var cache = { at: 0, items: [], filter: 'all', tr: {} };
 
-  async function fetchHN(q) {
-    var d = await fetch('https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(q) + '&tags=story&hitsPerPage=15').then(function (r) { return r.json(); });
+  async function hn(q) {
+    var d = await fetch('https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(q) + '&tags=story&hitsPerPage=12').then(function (r) { return r.json(); });
     return (d.hits || []).map(function (h) {
-      return {
-        title: h.title || h.story_title || '',
-        link: h.url || ('https://news.ycombinator.com/item?id=' + h.objectID),
-        date: h.created_at || '',
-        src: 'HN'
-      };
+      return { title: h.title || h.story_title || '', link: h.url || ('https://news.ycombinator.com/item?id=' + h.objectID), date: h.created_at || '', src: 'HN' };
     }).filter(function (x) { return x.title; });
   }
 
-  async function translateRu(text) {
-    if (!text || lang() !== 'ru') return text;
-    if (myNews.tr[text]) return myNews.tr[text];
+  async function trRu(t) {
+    if (!t || lang() !== 'ru') return t;
+    if (cache.tr[t]) return cache.tr[t];
     try {
-      var d = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text.slice(0, 400)) + '&langpair=en|ru').then(function (r) { return r.json(); });
-      var out = d && d.responseData && d.responseData.translatedText;
-      if (out && out.indexOf('MYMEMORY') === -1) { myNews.tr[text] = out; return out; }
+      var d = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(t.slice(0, 400)) + '&langpair=en|ru').then(function (r) { return r.json(); });
+      var o = d && d.responseData && d.responseData.translatedText;
+      if (o && o.indexOf('MYMEMORY') === -1) { cache.tr[t] = o; return o; }
     } catch (e) {}
-    return text;
+    return t;
   }
 
-  async function loadMyNews(force) {
-    if (!force && myNews.items.length && Date.now() - myNews.at < 60000) {
-      await paintMyNews();
+  async function loadNews() {
+    var box = $('newsList');
+    if (!box) return;
+    if (cache.items.length && Date.now() - cache.at < 60000) {
+      await paint();
       return;
     }
-    var box = $('newsList');
-    if (box) box.innerHTML = '<div class="empty">' + (lang() === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026' : 'Loading\u2026') + '</div>';
+    box.innerHTML = '<div class="empty">' + (lang() === 'ru' ? '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026' : 'Loading\u2026') + '</div>';
     var all = [];
     try {
-      var parts = await Promise.all([
-        fetchHN('bitcoin OR crypto OR ethereum'),
-        fetchHN('solana OR ripple OR blockchain'),
-        fetchHN('cryptocurrency')
-      ]);
+      var parts = await Promise.all([hn('bitcoin OR crypto OR ethereum'), hn('solana OR ripple OR blockchain'), hn('cryptocurrency')]);
       parts.forEach(function (a) { all = all.concat(a); });
-    } catch (e) { console.warn(e); }
+    } catch (e) {}
     var seen = {};
     all = all.filter(function (n) {
       var k = n.title.toLowerCase().slice(0, 70);
       if (seen[k]) return false;
       seen[k] = 1;
       return true;
-    });
-    all.sort(function (a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
-    myNews.items = all.slice(0, 40);
-    myNews.at = Date.now();
-    await paintMyNews();
+    }).sort(function (a, b) { return new Date(b.date || 0) - new Date(a.date || 0); });
+    cache.items = all.slice(0, 40);
+    cache.at = Date.now();
+    await paint();
   }
 
-  async function paintMyNews() {
+  async function paint() {
     var box = $('newsList');
     if (!box) return;
-    myNews.painting = true;
-    var items = myNews.items;
-    var f = items;
-    if (myNews.filter && myNews.filter !== 'all') {
-      var keys = {
-        bitcoin: /bitcoin|btc/i, ethereum: /ethereum|\beth\b/i, solana: /solana|\bsol\b/i,
-        xrp: /\bxrp\b|ripple/i, market: /market|crypto|bitcoin|eth|sol|xrp|etf|blockchain/i
-      };
-      var re = keys[myNews.filter] || /./i;
-      f = items.filter(function (n) { return re.test(n.title); });
+    var f = cache.items;
+    if (cache.filter && cache.filter !== 'all') {
+      var keys = { bitcoin: /bitcoin|btc/i, ethereum: /ethereum|\beth\b/i, solana: /solana|\bsol\b/i, xrp: /\bxrp\b|ripple/i, market: /market|crypto|bitcoin|eth|sol|xrp|etf|blockchain/i };
+      var re = keys[cache.filter] || /./i;
+      f = cache.items.filter(function (n) { return re.test(n.title); });
     }
     var L = lang(), html = [], limit = Math.min(f.length, 20);
     for (var i = 0; i < limit; i++) {
@@ -93,64 +78,24 @@
     if (L === 'ru') {
       for (var i = 0; i < limit; i++) {
         try {
-          var title = await translateRu(f[i].title);
+          var title = await trRu(f[i].title);
           var el = box.querySelector('.news-item[data-i="' + i + '"] a');
           if (el) el.textContent = title;
         } catch (e) {}
       }
     }
-    setTimeout(function () { myNews.painting = false; }, 50);
   }
 
-  function isEmptyNews() {
-    var box = $('newsList');
-    if (!box) return false;
-    var t = (box.textContent || '').replace(/\s+/g, ' ').trim();
-    return !t || EMPTY_RE.test(t) || box.querySelectorAll('.news-item').length === 0;
-  }
-
-  function guardNews() {
-    var box = $('newsList');
-    if (!box) return;
-    var obs = new MutationObserver(function () {
-      if (myNews.painting) return;
-      if (isEmptyNews() && myNews.items.length) {
-        paintMyNews();
-      } else if (isEmptyNews() && Date.now() - myNews.at > 3000) {
-        loadMyNews(true);
-      }
-    });
-    obs.observe(box, { childList: true, subtree: true, characterData: true });
-  }
-
-  function wireNewsUI() {
-    var tabs = $('newsTabs');
-    if (tabs && !tabs._myWired) {
-      tabs._myWired = true;
-      tabs.addEventListener('click', function (e) {
-        var tab = e.target.closest('.tab');
-        if (!tab) return;
-        tabs.querySelectorAll('.tab').forEach(function (x) { x.classList.remove('on'); });
-        tab.classList.add('on');
-        myNews.filter = tab.getAttribute('data-f') || 'all';
-        paintMyNews();
-      }, true);
-    }
-    var langSel = $('langSel');
-    if (langSel && !langSel._myWired) {
-      langSel._myWired = true;
-      langSel.addEventListener('change', function () {
-        setTimeout(function () { paintMyNews(); }, 300);
-      });
-    }
+  function scheduleNews() {
+    setTimeout(loadNews, 600);
+    setTimeout(loadNews, 2000);
   }
 
   var TV_SYM = {
     bitcoin: 'BINANCE:BTCUSDT', ethereum: 'BINANCE:ETHUSDT', solana: 'BINANCE:SOLUSDT',
-    binancecoin: 'BINANCE:BNBUSDT', ripple: 'BINANCE:XRPUSDT', cardano: 'BINANCE:ADAUSDT',
-    dogecoin: 'BINANCE:DOGEUSDT', monero: 'BINANCE:XMRUSDT', 'the-open-network': 'BINANCE:TONUSDT',
-    toncoin: 'BINANCE:TONUSDT', polkadot: 'BINANCE:DOTUSDT', 'avalanche-2': 'BINANCE:AVAXUSDT',
-    'matic-network': 'BINANCE:POLUSDT', pepe: 'BINANCE:PEPEUSDT', tron: 'BINANCE:TRXUSDT'
+    binancecoin: 'BINANCE:BNBUSDT', ripple: 'BINANCE:XRPUSDT', monero: 'BINANCE:XMRUSDT',
+    'the-open-network': 'BINANCE:TONUSDT', toncoin: 'BINANCE:TONUSDT', cardano: 'BINANCE:ADAUSDT',
+    dogecoin: 'BINANCE:DOGEUSDT', polkadot: 'BINANCE:DOTUSDT', 'matic-network': 'BINANCE:POLUSDT'
   };
   var tvReady = null;
   function ensureTV() {
@@ -165,7 +110,7 @@
     });
     return tvReady;
   }
-  async function loadTVChart(id) {
+  async function loadTV(id) {
     var box = $('tv'); if (!box) return;
     await ensureTV();
     if (!window.TradingView) return;
@@ -189,48 +134,24 @@
     } catch (e) {}
   }
 
-  var apyCache = {}, APY_FALLBACK = {
-    ethereum: 2.2, solana: 4.6, binancecoin: 0.8, cardano: 2.5, polkadot: 3.9,
-    'avalanche-2': 5.5, tron: 4.0, 'matic-network': 3.5, 'the-open-network': 3.8, toncoin: 3.8
-  };
-  async function fetchAPYs() {
-    try {
-      var d = await fetch('https://yields.llama.fi/pools').then(function (r) { return r.json(); });
-      var bySym = {};
-      (d.data || []).forEach(function (p) {
-        var sym = (p.symbol || '').toUpperCase().split(' ')[0];
-        var apy = p.apy || p.apyBase || 0, tvl = p.tvlUsd || 0;
-        if (apy > 0 && apy < 50 && tvl > 1e6 && (!bySym[sym] || tvl > bySym[sym].tvl))
-          bySym[sym] = { apy: apy, tvl: tvl };
-      });
-      [['ethereum', 'ETH'], ['solana', 'SOL'], ['binancecoin', 'BNB'], ['the-open-network', 'TON'], ['toncoin', 'TON'], ['polkadot', 'DOT'], ['matic-network', 'POL'], ['avalanche-2', 'AVAX'], ['tron', 'TRX']].forEach(function (pair) {
-        if (bySym[pair[1]]) apyCache[pair[0]] = +bySym[pair[1]].apy.toFixed(2);
-      });
-    } catch (e) {}
-    Object.keys(APY_FALLBACK).forEach(function (id) { if (apyCache[id] == null) apyCache[id] = APY_FALLBACK[id]; });
-    document.querySelectorAll('tr[data-id]').forEach(function (tr) {
-      var id = tr.getAttribute('data-id'), apy = apyCache[id], cells = tr.querySelectorAll('td');
-      if (apy != null && cells.length >= 5) cells[4].innerHTML = apy > 0 ? '<span class="apy">' + apy + '%</span>' : '\u2014';
-    });
-  }
-
-  function fmtNative(n) {
+  function fmtN(n) {
     if (n == null || isNaN(n)) return '\u2014';
     if (n >= 0.01) return n.toFixed(4);
     if (n >= 0.0001) return n.toFixed(6);
     if (n >= 1e-8) return n.toFixed(8);
     return n.toFixed(10);
   }
-  async function buildGasFixed() {
+  async function gas() {
     var box = $('gasBox'); if (!box) return;
     box.innerHTML = '<div class="muted">\u2026</div>';
-    var GL = 21000, chains = [
-      { n: 'Ethereum', u: 'https://ethereum.publicnode.com', priceId: 'ethereum', sym: 'ETH' },
-      { n: 'BSC', u: 'https://bsc-dataseed.binance.org', priceId: 'binancecoin', sym: 'BNB' },
-      { n: 'Polygon', u: 'https://polygon-bor.publicnode.com', priceId: 'matic-network', sym: 'POL' },
-      { n: 'Arbitrum', u: 'https://arbitrum-one.publicnode.com', priceId: 'ethereum', sym: 'ETH' },
-      { n: 'Optimism', u: 'https://optimism.publicnode.com', priceId: 'ethereum', sym: 'ETH' },
-      { n: 'Base', u: 'https://base.publicnode.com', priceId: 'ethereum', sym: 'ETH' }
+    var GL = 21000;
+    var chains = [
+      { n: 'Ethereum', u: 'https://ethereum.publicnode.com', id: 'ethereum', sym: 'ETH' },
+      { n: 'BSC', u: 'https://bsc-dataseed.binance.org', id: 'binancecoin', sym: 'BNB' },
+      { n: 'Polygon', u: 'https://polygon-bor.publicnode.com', id: 'matic-network', sym: 'POL' },
+      { n: 'Arbitrum', u: 'https://arbitrum-one.publicnode.com', id: 'ethereum', sym: 'ETH' },
+      { n: 'Optimism', u: 'https://optimism.publicnode.com', id: 'ethereum', sym: 'ETH' },
+      { n: 'Base', u: 'https://base.publicnode.com', id: 'ethereum', sym: 'ETH' }
     ];
     var prices = {}, fx = 1;
     try {
@@ -240,7 +161,11 @@
     try {
       var fxD = await fetch('https://api.exchangerate-api.com/v4/latest/USD').then(function (r) { return r.json(); });
       var c = cur();
-      if (fxD && fxD.rates) { if (c === 'eur') fx = fxD.rates.EUR; else if (c === 'rub') fx = fxD.rates.RUB; else if (c === 'pln') fx = fxD.rates.PLN; }
+      if (fxD && fxD.rates) {
+        if (c === 'eur') fx = fxD.rates.EUR;
+        else if (c === 'rub') fx = fxD.rates.RUB;
+        else if (c === 'pln') fx = fxD.rates.PLN;
+      }
     } catch (e) {}
     var rows = [];
     await Promise.all(chains.map(async function (ch) {
@@ -248,10 +173,9 @@
         var res = await fetch(ch.u, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'eth_gasPrice', params: [] }) }).then(function (r) { return r.json(); });
         if (res && res.result) {
           var gwei = parseInt(res.result, 16) / 1e9;
-          var nativeAmt = (gwei * 1e9 * GL) / 1e18;
-          var usd = (nativeAmt * (prices[ch.priceId] || 0)) * fx;
-          var t = fmtNative(nativeAmt) + ' ' + ch.sym + (usd > 0 ? ' \u2248 ' + money(usd) : '');
-          rows.push({ n: ch.n, t: t, o: ch.n === 'Ethereum' ? 0 : 1 });
+          var amt = (gwei * 1e9 * GL) / 1e18;
+          var usd = amt * (prices[ch.id] || 0) * fx;
+          rows.push({ n: ch.n, t: fmtN(amt) + ' ' + ch.sym + (usd > 0 ? ' \u2248 ' + money(usd) : ''), o: ch.n === 'Ethereum' ? 0 : 1 });
         }
       } catch (e) {}
     }));
@@ -260,23 +184,27 @@
   }
 
   function boot() {
-    wireNewsUI();
-    guardNews();
-    setTimeout(function () { loadMyNews(true); }, 800);
-    setInterval(function () { loadMyNews(true); }, 90000);
-
     document.addEventListener('click', function (e) {
+      if (e.target.closest('.nav-btn[data-p="news"]')) scheduleNews();
+      if (e.target.closest('#newsTabs .tab')) {
+        var tab = e.target.closest('.tab');
+        cache.filter = tab.getAttribute('data-f') || 'all';
+        setTimeout(paint, 50);
+      }
       var tr = e.target.closest('tr[data-id]');
-      if (tr && !e.target.closest('.wl-rm')) setTimeout(function () { loadTVChart(tr.getAttribute('data-id')); }, 400);
-      if (e.target.closest('.nav-btn[data-p="news"]')) setTimeout(function () { loadMyNews(true); }, 200);
-      if (e.target.closest('.nav-btn[data-p="tools"]')) setTimeout(buildGasFixed, 300);
+      if (tr && !e.target.closest('.wl-rm')) setTimeout(function () { loadTV(tr.getAttribute('data-id')); }, 400);
+      if (e.target.closest('.nav-btn[data-p="tools"]')) setTimeout(gas, 300);
     }, true);
-
-    fetchAPYs();
-    setInterval(fetchAPYs, 300000);
+    var langSel = $('langSel');
+    if (langSel) langSel.addEventListener('change', function () { setTimeout(paint, 400); });
+    setTimeout(loadNews, 2500);
+    setInterval(function () {
+      var pn = document.getElementById('p-news');
+      if (pn && pn.classList.contains('on')) loadNews();
+    }, 90000);
     setInterval(function () {
       var pt = document.getElementById('p-tools');
-      if (pt && pt.classList.contains('on')) buildGasFixed();
+      if (pt && pt.classList.contains('on')) gas();
     }, 30000);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
