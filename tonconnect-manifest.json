@@ -1,16 +1,7 @@
 {
+  "url": "https://0xvilya.github.io/crypto-tracker/",
   "name": "Crypto Tracker",
-  "short_name": "Crypto",
-  "start_url": ".",
-  "display": "standalone",
-  "background_color": "#0b1220",
-  "theme_color": "#120b22",
-  "icons": [
-    {
-      "src": "icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "iconUrl": "https://0xvilya.github.io/crypto-tracker/icon.svg",
+  "termsOfUseUrl": "https://0xvilya.github.io/crypto-tracker/",
+  "privacyPolicyUrl": "https://0xvilya.github.io/crypto-tracker/"
 }
