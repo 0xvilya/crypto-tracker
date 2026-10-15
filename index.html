@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=119"/>
+<link rel="stylesheet" href="styles.css?v=120"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
@@ -44,7 +44,6 @@
   <button type="button" class="nav-btn on" data-p="home"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10.5L12 3l9 7.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1v-9.5z"/></svg><span data-i18n="nav_home">Главная</span></button>
   <button type="button" class="nav-btn" data-p="port"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/></svg><span data-i18n="nav_port">Портфель</span></button>
   <button type="button" class="nav-btn" data-p="wallet"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.5"/></svg><span data-i18n="nav_wallet">Кошелёк</span></button>
-  <button type="button" class="nav-btn" data-p="news"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4zM8 9h8M8 13h5"/></svg><span data-i18n="nav_news">Новости</span></button>
   <button type="button" class="nav-btn" data-p="tools"><svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2"/></svg><span data-i18n="nav_tools">Инструменты</span></button>
 </nav>
 <div class="wrap">
@@ -84,12 +83,6 @@
       <div id="manRes" style="margin-top:.75rem"></div>
     </div>
   </section>
-  <section class="page" id="p-news">
-    <div class="card"><h2 data-i18n="news">Новости</h2>
-      <div class="tabs" id="newsTabs" style="margin-bottom:.6rem"><button type="button" class="tab on" data-f="all">All</button><button type="button" class="tab" data-f="bitcoin">Bitcoin</button><button type="button" class="tab" data-f="ethereum">Ethereum</button><button type="button" class="tab" data-f="solana">Solana</button><button type="button" class="tab" data-f="xrp">XRP</button><button type="button" class="tab" data-f="market">Market</button></div>
-      <div id="newsList" class="muted">…</div>
-    </div>
-  </section>
   <section class="page" id="p-tools">
     <div class="card"><h2 data-i18n="converter">Конвертер</h2>
       <div class="form"><div class="field" style="grid-column:1/-1"><label data-i18n="amount">Сумма</label><input type="number" id="convAmt" value="1"/></div>
@@ -123,6 +116,6 @@
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@53d8ac2f5cbc861ab846b4481e67f877bd472d0e/patch.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@55b8350d1fb60246314e484c4ece901dc17a724a/patch.js"></script>
 </body>
 </html>
