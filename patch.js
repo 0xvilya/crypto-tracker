@@ -1,4 +1,4 @@
-/* v111 SAFE — news without MutationObserver, TV, APY, gas */
+/* v112 SAFE — news without MutationObserver, TV, APY, gas */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }

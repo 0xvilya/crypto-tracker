@@ -1,45 +1,24 @@
-const CACHE_NAME = 'crypto-tracker-v1';
-const ASSETS = ['./', './index.html', './styles.css', './core.js', './app.js', './manifest.json', './icon.svg'];
-
-self.addEventListener('install', function (event) {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(function (cache) {
-      return cache.addAll(ASSETS).catch(function () {});
-    }).then(function () {
-      return self.skipWaiting();
-    })
-  );
+/* v112 — self-unregister, clear caches (was caching broken builds) */
+self.addEventListener('install', function (e) {
+  self.skipWaiting();
 });
-
-self.addEventListener('activate', function (event) {
-  event.waitUntil(
+self.addEventListener('activate', function (e) {
+  e.waitUntil(
     caches.keys().then(function (keys) {
-      return Promise.all(keys.filter(function (key) {
-        return key !== CACHE_NAME;
-      }).map(function (key) {
-        return caches.delete(key);
-      }));
+      return Promise.all(keys.map(function (k) { return caches.delete(k); }));
     }).then(function () {
-      return self.clients.claim();
-    })
-  );
-});
-
-self.addEventListener('fetch', function (event) {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    fetch(event.request).then(function (response) {
-      if (response && response.ok) {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then(function (cache) {
-          cache.put(event.request, copy);
-        }).catch(function () {});
-      }
-      return response;
-    }).catch(function () {
-      return caches.match(event.request).then(function (response) {
-        return response || caches.match('./index.html');
+      return self.registration.unregister();
+    }).then(function () {
+      return self.clients.matchAll({ type: 'window' });
+    }).then(function (clients) {
+      clients.forEach(function (c) {
+        try { c.navigate(c.url); } catch (err) {}
       });
     })
   );
+});
+self.addEventListener('fetch', function (e) {
+  e.respondWith(fetch(e.request).catch(function () {
+    return new Response('', { status: 503, statusText: 'Offline' });
+  }));
 });
