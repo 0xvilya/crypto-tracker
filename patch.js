@@ -1,2 +1,2 @@
-/* v122: stocks full page - load from repo raw if needed */
-console.log('v122 placeholder');
+/* v121 restored - use CDN 303a20b if this is wrong */
+(function(){console.warn('use jsdelivr 303a20b');})();
