@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=115"/>
+<link rel="stylesheet" href="styles.css?v=116"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
@@ -78,8 +78,8 @@
   </section>
   <section class="page" id="p-wallet">
     <div class="card"><h2 data-i18n="man_addr">Адрес кошелька <button type="button" class="help-btn" data-help="wallet">?</button></h2>
-      <div class="form"><div class="field" style="grid-column:1/-1"><label data-i18n="chain">Сеть</label><select id="manChain"><option value="eth">Ethereum</option><option value="bsc">BSC</option><option value="polygon">Polygon</option><option value="arb">Arbitrum</option><option value="op">Optimism</option><option value="base">Base</option><option value="sol">Solana</option><option value="ton">TON</option><option value="btc">Bitcoin</option></select></div>
-        <div class="field" style="grid-column:1/-1"><label data-i18n="address">Адрес</label><input type="text" id="manAddr" placeholder="0x… / EQ… / bc1…"/></div></div>
+      <div class="form"><div class="field" style="grid-column:1/-1"><label data-i18n="chain">Сеть</label><select id="manChain"><option value="eth">Ethereum</option><option value="bsc">BSC</option><option value="polygon">Polygon</option><option value="arb">Arbitrum</option><option value="op">Optimism</option><option value="base">Base</option><option value="sol">Solana</option><option value="ton">TON / GRAM</option><option value="btc">Bitcoin</option></select></div>
+        <div class="field" style="grid-column:1/-1"><label data-i18n="address">Адрес</label><input type="text" id="manAddr" placeholder="0x… / EQ… / UQ… / bc1…"/></div></div>
       <button type="button" class="btn" id="manBtn" style="margin-top:.6rem" data-i18n="show_bal">Показать</button>
       <div id="manRes" style="margin-top:.75rem"></div>
     </div>
@@ -123,6 +123,6 @@
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
-<script src="patch.js?v=115"></script>
+<script src="patch.js?v=116"></script>
 </body>
 </html>
