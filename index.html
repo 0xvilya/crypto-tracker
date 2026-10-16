@@ -10,8 +10,8 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=126"/>
-<link rel="stylesheet" href="layout.css?v=126"/>
+<link rel="stylesheet" href="styles.css?v=127"/>
+<link rel="stylesheet" href="layout.css?v=127"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 .wrap{max-width:1100px!important;width:100%!important;margin:0 auto!important;box-sizing:border-box}
@@ -123,14 +123,23 @@
 </div>
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
+<!-- Script chain v127 — see ARCHITECTURE.md -->
+<!-- 0. data.js: unified cache/dedup/FX -->
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c65310356a0fb83f6498f449b6668b7c8ba4192a/data.js"></script>
+<!-- 1. app.js CORE (pinned working build — main/app.js is stub) -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
+<!-- 2. patch.js overlay heatmap/wallet (pinned working build) -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@303a20b633a81b404965efa1942fe5ce0556f0e0/patch.js"></script>
+<!-- 3. i18n -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c22143cc9cbaa33dee882a9aaedaad05f89090d3/fix-i18n.js"></script>
+<!-- 4. stocks board -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@425993f3f5c686181a0848d15a24d7050ef99ef0/fix-stocks.js"></script>
+<!-- 5. news tab -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@4beb8e6f7e4de2036463f0c8b53e53d1b58f2f84/fix-news.js"></script>
 <script>
-/* v126 inline: wire native nav buttons for stocks/news */
+/* v127: wire stocks/news nav + init CTData FX */
 (function(){
+  if(window.CTData&&window.CTData.loadFx)window.CTData.loadFx();
   function go(page){
     document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('on');});
     var btn=document.querySelector('.nav-btn[data-p="'+page+'"]');
@@ -145,7 +154,6 @@
   document.querySelectorAll('.nav-btn[data-p="stocks"],.nav-btn[data-p="news"]').forEach(function(btn){
     btn.addEventListener('click',function(e){e.preventDefault();go(btn.getAttribute('data-p'));});
   });
-  // ensure pages exist after modules load
   setTimeout(function(){
     if(window.__ct_applyLang)window.__ct_applyLang();
     if(window.__ct_loadStocks)window.__ct_loadStocks();
