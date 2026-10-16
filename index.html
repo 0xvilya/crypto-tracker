@@ -10,18 +10,21 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=128"/>
-<link rel="stylesheet" href="layout.css?v=128"/>
+<link rel="stylesheet" href="styles.css?v=129"/>
+<link rel="stylesheet" href="layout.css?v=129"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 .wrap{max-width:1100px!important;width:100%!important;margin:0 auto!important;box-sizing:border-box}
 #aiBox,.ai-box{display:none!important}
 .bottom-nav{grid-template-columns:repeat(6,1fr)!important}
-.nav-btn{font-size:.58rem!important;padding:.25rem .08rem!important}
+.nav-btn{font-size:.55rem!important;padding:.22rem .06rem!important}
+.nav-btn[data-p="news"]{display:flex!important}
 .s-tr{cursor:pointer}.s-tr:hover{background:rgba(168,85,247,.1)}
 .s-gl{display:inline-flex;gap:.35rem;padding:.35rem .55rem;border-radius:10px;background:rgba(168,85,247,.08);margin:.15rem;cursor:pointer}
 .up{color:#22c55e}.dn{color:#ef4444}
 #dataStatus{opacity:.85}
+#p-news .card{min-height:55vh}
+#newsFeed{min-height:45vh}
 </style>
 </head>
 <body>
@@ -124,7 +127,6 @@
 </div>
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
-<!-- v128 load order — see ARCHITECTURE.md -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c65310356a0fb83f6498f449b6668b7c8ba4192a/data.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@303a20b633a81b404965efa1942fe5ce0556f0e0/patch.js"></script>
@@ -132,6 +134,7 @@
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@425993f3f5c686181a0848d15a24d7050ef99ef0/fix-stocks.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@4beb8e6f7e4de2036463f0c8b53e53d1b58f2f84/fix-news.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@e798366889fc7c50ecdf1394779ad061e8c628c1/bridge.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@0ec4009dfc0ee74f3b6542310a26b5f781e0533e/ui-fix.js"></script>
 <script>
 (function(){
   if(window.CTData&&window.CTData.loadFx)window.CTData.loadFx();
@@ -141,7 +144,7 @@
     if(btn)btn.classList.add('on');
     document.querySelectorAll('.page').forEach(function(p){p.classList.remove('on');});
     var el=document.getElementById('p-'+page);
-    if(el)el.classList.add('on');
+    if(el){el.classList.add('on');el.style.display='';}
     if(page==='stocks'&&window.__ct_loadStocks)window.__ct_loadStocks();
     if(page==='news'&&window.__ct_loadNews)window.__ct_loadNews(false);
     if(window.__ct_applyLang)window.__ct_applyLang();
