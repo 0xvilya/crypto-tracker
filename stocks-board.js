@@ -1,4 +1,4 @@
-/* stocks-board v139 — sole owner of stock table; digit-only updates; search; dividends always visible */
+/* stocks-board v140 — offline-first, no lag, full seeds, digit-only */
 (function () {
   'use strict';
   function $(id) { return document.getElementById(id); }
@@ -7,64 +7,67 @@
   }
   function t(k) {
     var d = {
-      ru: { list: '\u0421\u043f\u0438\u0441\u043e\u043a \u0430\u043a\u0446\u0438\u0439', ticker: '\u0422\u0438\u043a\u0435\u0440', price: '\u0426\u0435\u043d\u0430', ch24: '24H', div: '\u0414\u0438\u0432.%', search: '\u041f\u043e\u0438\u0441\u043a \u0442\u0438\u043a\u0435\u0440\u0430 \u0438\u043b\u0438 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u044f\u2026', updated: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e', loading: '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026' },
-      en: { list: 'Stocks', ticker: 'Ticker', price: 'Price', ch24: '24H', div: 'Div%', search: 'Search ticker or name\u2026', updated: 'Updated', loading: 'Loading\u2026' }
+      ru: { ticker: '\u0422\u0438\u043a\u0435\u0440', price: '\u0426\u0435\u043d\u0430', ch24: '24H', div: '\u0414\u0438\u0432.%', search: '\u041f\u043e\u0438\u0441\u043a \u0430\u043a\u0446\u0438\u0438\u2026' },
+      en: { ticker: 'Ticker', price: 'Price', ch24: '24H', div: 'Div%', search: 'Search stock\u2026' }
     };
     return (d[lang()] || d.ru)[k] || k;
   }
 
-  var TICKERS = [
-    'AAPL','MSFT','GOOGL','AMZN','NVDA','TSLA','META','AMD','NFLX','JPM',
-    'V','MA','BABA','DIS','CRM','ORCL','ADBE','INTC','PYPL','UBER',
-    'COIN','PLTR','KO','PEP','NKE','BA','WMT','XOM','JNJ','COST'
+  var BOARD = [
+    {s:'AAPL',n:'Apple',p:342.00,c:-0.28,d:0.43},
+    {s:'MSFT',n:'Microsoft',p:539.44,c:3.22,d:0.72},
+    {s:'GOOGL',n:'Alphabet',p:349.22,c:0.27,d:0.32},
+    {s:'AMZN',n:'Amazon',p:254.76,c:0.28,d:0},
+    {s:'NVDA',n:'NVIDIA',p:217.23,c:1.15,d:0.03},
+    {s:'TSLA',n:'Tesla',p:362.44,c:0.85,d:0},
+    {s:'META',n:'Meta',p:736.72,c:2.20,d:0.32},
+    {s:'AMD',n:'AMD',p:562.23,c:-9.42,d:0},
+    {s:'NFLX',n:'Netflix',p:72.61,c:1.45,d:0},
+    {s:'JPM',n:'JPMorgan',p:335.53,c:1.24,d:2.10},
+    {s:'V',n:'Visa',p:399.75,c:6.57,d:0.70},
+    {s:'MA',n:'Mastercard',p:616.32,c:7.23,d:0.55},
+    {s:'BABA',n:'Alibaba',p:111.13,c:5.14,d:1.80},
+    {s:'DIS',n:'Disney',p:110.68,c:3.42,d:0.80},
+    {s:'CRM',n:'Salesforce',p:246.74,c:8.31,d:0},
+    {s:'ORCL',n:'Oracle',p:134.47,c:-0.90,d:1.20},
+    {s:'ADBE',n:'Adobe',p:251.67,c:4.41,d:0},
+    {s:'INTC',n:'Intel',p:95.37,c:-10.94,d:1.50},
+    {s:'PYPL',n:'PayPal',p:57.16,c:3.89,d:0},
+    {s:'UBER',n:'Uber',p:78.40,c:1.20,d:0},
+    {s:'COIN',n:'Coinbase',p:185.00,c:2.50,d:0},
+    {s:'PLTR',n:'Palantir',p:42.50,c:1.80,d:0},
+    {s:'KO',n:'Coca-Cola',p:92.00,c:4.82,d:2.90},
+    {s:'PEP',n:'Pepsi',p:128.38,c:0.03,d:3.10},
+    {s:'NKE',n:'Nike',p:37.14,c:6.91,d:1.50},
+    {s:'BA',n:'Boeing',p:188.73,c:0.52,d:0},
+    {s:'WMT',n:'Walmart',p:82.50,c:0.90,d:1.10},
+    {s:'XOM',n:'Exxon',p:115.20,c:0.40,d:3.30},
+    {s:'JNJ',n:'J&J',p:158.00,c:0.30,d:3.00},
+    {s:'COST',n:'Costco',p:920.00,c:0.60,d:0.55}
   ];
-  var NAMES = {
-    AAPL:'Apple',MSFT:'Microsoft',GOOGL:'Alphabet',AMZN:'Amazon',NVDA:'NVIDIA',
-    TSLA:'Tesla',META:'Meta',AMD:'AMD',NFLX:'Netflix',JPM:'JPMorgan',
-    V:'Visa',MA:'Mastercard',BABA:'Alibaba',DIS:'Disney',CRM:'Salesforce',
-    ORCL:'Oracle',ADBE:'Adobe',INTC:'Intel',PYPL:'PayPal',UBER:'Uber',
-    COIN:'Coinbase',PLTR:'Palantir',KO:'Coca-Cola',PEP:'Pepsi',NKE:'Nike',
-    BA:'Boeing',WMT:'Walmart',XOM:'Exxon',JNJ:'J&J',COST:'Costco'
-  };
-  var DIV = {
-    AAPL:0.43,MSFT:0.72,GOOGL:0.32,AMZN:0,NVDA:0.03,TSLA:0,META:0.32,
-    AMD:0,NFLX:0,JPM:2.1,V:0.70,MA:0.55,BABA:1.80,DIS:0.80,CRM:0,
-    ORCL:1.20,ADBE:0,INTC:1.50,PYPL:0,UBER:0,COIN:0,PLTR:0,KO:2.90,
-    PEP:3.10,NKE:1.50,BA:0,WMT:1.10,XOM:3.30,JNJ:3.00,COST:0.55
-  };
-  var SEED = {
-    NVDA:{price:217.23,ch:1.2},TSLA:{price:362.44,ch:0.8},
-    AAPL:{price:342,ch:-0.28},MSFT:{price:539.44,ch:3.22},
-    GOOGL:{price:349.22,ch:0.27},AMZN:{price:254.76,ch:0.28},
-    META:{price:736.72,ch:2.2},AMD:{price:562.23,ch:-9.42}
-  };
 
   var EXTRA = [];
   try { EXTRA = JSON.parse(localStorage.getItem('ct_stock_extra') || '[]'); } catch (e) {}
+
   var cache = {};
-  try { cache = JSON.parse(localStorage.getItem('ct_stocks_v5') || '{}'); } catch (e) {}
-  Object.keys(SEED).forEach(function (s) {
-    if (!cache[s] || cache[s].price == null) {
-      cache[s] = { price: SEED[s].price, ch: SEED[s].ch, div: DIV[s] || 0, at: 0, seed: true };
+  try { cache = JSON.parse(localStorage.getItem('ct_stocks_v6') || '{}'); } catch (e) {}
+
+  BOARD.forEach(function (row) {
+    if (!cache[row.s] || cache[row.s].price == null) {
+      cache[row.s] = { price: row.p, ch: row.c, div: row.d, name: row.n, at: 0, seed: true };
     }
   });
-
-  function allTickers() {
-    var base = TICKERS.slice();
-    EXTRA.forEach(function (s) { if (base.indexOf(s) < 0) base.push(s); });
-    return base;
-  }
 
   function cur() {
     return (localStorage.getItem('ct_cur') || ($('curSel') && $('curSel').value) || 'usd').toLowerCase();
   }
   var fx = 1, fxAt = 0;
   async function loadFx() {
-    if (Date.now() - fxAt < 180000) return fx;
+    if (Date.now() - fxAt < 300000) return fx;
     var c = cur();
     if (c === 'usd') { fx = 1; fxAt = Date.now(); return 1; }
     try {
-      var r = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { signal: AbortSignal.timeout(5000) });
+      var r = await fetch('https://api.exchangerate-api.com/v4/latest/USD', { signal: AbortSignal.timeout(4000) });
       var d = await r.json();
       fx = c === 'eur' ? (d.rates.EUR || 1) : c === 'rub' ? (d.rates.RUB || 1) : c === 'pln' ? (d.rates.PLN || 1) : 1;
       fxAt = Date.now();
@@ -76,8 +79,7 @@
     var c = cur();
     var s = c === 'eur' ? '\u20ac' : c === 'rub' ? '\u20bd' : c === 'pln' ? 'z\u0142' : '$';
     var n = +v * fx;
-    if (Math.abs(n) >= 1000) return s + n.toLocaleString('en-US', { maximumFractionDigits: 2 });
-    return s + n.toFixed(2);
+    return Math.abs(n) >= 1000 ? s + n.toLocaleString('en-US', { maximumFractionDigits: 2 }) : s + n.toFixed(2);
   }
 
   function parseChart(d) {
@@ -103,19 +105,21 @@
         if (sum > 0 && p > 0) divY = (sum / p) * 100;
       }
     } catch (e) {}
-    return { price: +p, ch: prev ? ((p - prev) / prev * 100) : 0, name: m.shortName || m.symbol, div: divY, at: Date.now() };
+    return { price: +p, ch: prev ? ((p - prev) / prev * 100) : 0, name: m.shortName || m.symbol, div: divY, at: Date.now(), seed: false };
   }
 
-  async function fetchSym(sym) {
-    var yurl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=1y&events=div';
+  async function fetchOne(sym) {
+    var yurl = 'https://query1.finance.yahoo.com/v8/finance/chart/' + encodeURIComponent(sym) + '?interval=1d&range=5d';
     var urls = [
       'https://corsproxy.io/?' + encodeURIComponent(yurl),
-      'https://api.allorigins.win/raw?url=' + encodeURIComponent(yurl),
-      'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(yurl)
+      'https://api.allorigins.win/raw?url=' + encodeURIComponent(yurl)
     ];
     for (var i = 0; i < urls.length; i++) {
       try {
-        var r = await fetch(urls[i], { signal: AbortSignal.timeout(8000) });
+        var ctrl = new AbortController();
+        var to = setTimeout(function () { ctrl.abort(); }, 6000);
+        var r = await fetch(urls[i], { signal: ctrl.signal });
+        clearTimeout(to);
         if (!r.ok) continue;
         var txt = await r.text();
         var d; try { d = JSON.parse(txt); } catch (e) { continue; }
@@ -126,92 +130,87 @@
     return null;
   }
 
-  function buildBoard() {
+  var built = false;
+  function buildOnce() {
     var body = $('stockBody');
-    if (!body) return;
+    if (!body) return false;
+
     var thead = body.parentElement && body.parentElement.querySelector('thead tr');
     if (thead) {
-      thead.innerHTML =
-        '<th>#</th><th>' + t('ticker') + '</th><th>' + t('price') + '</th><th>' + t('ch24') + '</th><th class="th-div">' + t('div') + '</th>';
+      thead.innerHTML = '<th>#</th><th>' + t('ticker') + '</th><th>' + t('price') + '</th><th>' + t('ch24') + '</th><th class="th-div">' + t('div') + '</th>';
     }
-    var list = allTickers();
-    var needRebuild = !body.querySelector('tr[data-s] .s-price') || body.querySelectorAll('tr[data-s]').length < list.length * 0.5;
-    if (needRebuild) {
+
+    if (!built || !body.querySelector('.s-price')) {
+      var list = BOARD.slice();
+      EXTRA.forEach(function (s) {
+        if (!list.some(function (r) { return r.s === s; })) {
+          list.push({ s: s, n: s, p: null, c: 0, d: 0 });
+        }
+      });
       var html = '';
-      list.forEach(function (s, idx) {
-        html += '<tr class="s-tr" data-s="' + s + '">' +
+      list.forEach(function (row, idx) {
+        html += '<tr class="s-tr" data-s="' + row.s + '">' +
           '<td class="s-rank">' + (idx + 1) + '</td>' +
-          '<td><b>' + s + '</b> <span class="muted s-name">' + (NAMES[s] || s) + '</span></td>' +
-          '<td class="s-price">\u2014</td>' +
-          '<td class="s-ch">\u2014</td>' +
-          '<td class="s-div">\u2014</td></tr>';
+          '<td><b>' + row.s + '</b> <span class="muted s-name">' + row.n + '</span></td>' +
+          '<td class="s-price">\u2014</td><td class="s-ch">\u2014</td><td class="s-div">\u2014</td></tr>';
       });
       body.innerHTML = html;
       body.querySelectorAll('tr[data-s]').forEach(function (tr) {
         tr.onclick = function () {
           var s = tr.getAttribute('data-s');
-          if (typeof window.openStock === 'function') window.openStock(s);
+          if (typeof window.openStock === 'function') try { window.openStock(s); } catch (e) {}
         };
       });
+      built = true;
     }
-    patchDigits();
+    paintDigits();
+    return true;
   }
 
-  function patchDigits() {
+  function paintDigits() {
     var body = $('stockBody');
     if (!body) return;
     body.querySelectorAll('tr[data-s]').forEach(function (tr) {
       var s = tr.getAttribute('data-s');
       var d = cache[s];
-      var priceEl = tr.querySelector('.s-price');
-      var chEl = tr.querySelector('.s-ch');
-      var divEl = tr.querySelector('.s-div');
-      if (d && d.price != null && priceEl) {
+      if (!d) return;
+      var pe = tr.querySelector('.s-price');
+      var ce = tr.querySelector('.s-ch');
+      var de = tr.querySelector('.s-div');
+      if (pe && d.price != null) {
         var mp = money(d.price);
-        if (priceEl.textContent !== mp) priceEl.textContent = mp;
+        if (pe.textContent !== mp) pe.textContent = mp;
       }
-      if (d && d.ch != null && chEl) {
+      if (ce && d.ch != null) {
         var mc = (d.ch >= 0 ? '+' : '') + (+d.ch).toFixed(2) + '%';
-        if (chEl.textContent !== mc) {
-          chEl.textContent = mc;
-          chEl.className = 's-ch ' + (d.ch > 0 ? 'up' : d.ch < 0 ? 'dn' : '');
+        if (ce.textContent !== mc) {
+          ce.textContent = mc;
+          ce.className = 's-ch ' + (d.ch > 0 ? 'up' : d.ch < 0 ? 'dn' : '');
         }
       }
-      if (divEl) {
-        var dy = (d && d.div != null && d.div > 0) ? d.div : (DIV[s] || 0);
+      if (de) {
+        var dy = (d.div != null && d.div > 0) ? d.div : 0;
         var ds = dy > 0 ? (+dy).toFixed(2) + '%' : '\u2014';
-        if (divEl.textContent !== ds) divEl.textContent = ds;
+        if (de.textContent !== ds) de.textContent = ds;
       }
-      var nameEl = tr.querySelector('.s-name');
-      if (nameEl && d && d.name && nameEl.textContent !== d.name) nameEl.textContent = d.name;
     });
   }
 
   var busy = false;
-  async function softRefresh(force) {
-    if (busy && !force) return;
+  async function backgroundUpdate() {
+    if (busy) return;
     busy = true;
     await loadFx();
-    buildBoard();
-    var list = allTickers();
-    list.sort(function (a, b) {
-      function score(s) {
-        if (!cache[s] || cache[s].price == null) return 0;
-        if (cache[s].seed) return 1;
-        return 2;
-      }
-      return score(a) - score(b);
-    });
-    for (var i = 0; i < list.length; i++) {
-      var s = list[i];
+    var top = BOARD.slice(0, 12).map(function (r) { return r.s; });
+    for (var i = 0; i < top.length; i++) {
+      var s = top[i];
       var age = cache[s] && !cache[s].seed ? Date.now() - (cache[s].at || 0) : 1e12;
-      if (!force && age < 120000 && cache[s] && cache[s].price != null && !cache[s].seed) continue;
-      var res = await fetchSym(s);
+      if (age < 180000) continue;
+      var res = await fetchOne(s);
       if (res) {
-        if (res.div == null || res.div <= 0) res.div = DIV[s] || 0;
+        var prev = cache[s] || {};
+        if (res.div == null || res.div <= 0) res.div = prev.div || 0;
         cache[s] = res;
-        if (res.name) NAMES[s] = res.name;
-        try { localStorage.setItem('ct_stocks_v5', JSON.stringify(cache)); } catch (e) {}
         var tr = document.querySelector('#stockBody tr[data-s="' + s + '"]');
         if (tr) {
           var pe = tr.querySelector('.s-price');
@@ -223,12 +222,13 @@
             ce.className = 's-ch ' + (res.ch > 0 ? 'up' : res.ch < 0 ? 'dn' : '');
           }
           if (de) {
-            var dy = res.div > 0 ? res.div : (DIV[s] || 0);
+            var dy = res.div > 0 ? res.div : 0;
             de.textContent = dy > 0 ? (+dy).toFixed(2) + '%' : '\u2014';
           }
         }
+        try { localStorage.setItem('ct_stocks_v6', JSON.stringify(cache)); } catch (e) {}
       }
-      await new Promise(function (r) { setTimeout(r, 120); });
+      await new Promise(function (r) { setTimeout(r, 200); });
     }
     busy = false;
   }
@@ -237,26 +237,24 @@
     var q = $('stockQ');
     if (!q) {
       var page = $('p-stocks');
-      if (page && !$('stockQ')) {
-        var parent = page.querySelector('.card') || page;
-        var inp = document.createElement('input');
-        inp.type = 'search';
-        inp.id = 'stockQ';
-        inp.placeholder = t('search');
-        inp.autocomplete = 'off';
-        inp.style.cssText = 'width:100%;margin:.5rem 0;padding:.55rem .75rem;border-radius:12px;border:1px solid rgba(168,85,247,.25);background:rgba(0,0,0,.25);color:inherit';
-        parent.insertBefore(inp, parent.firstChild);
-        q = inp;
+      if (!page) return;
+      var card = page.querySelector('.card');
+      if (card) {
+        q = document.createElement('input');
+        q.type = 'search';
+        q.id = 'stockQ';
+        q.placeholder = t('search');
+        q.autocomplete = 'off';
+        q.style.cssText = 'width:100%;box-sizing:border-box;margin:0 0 .6rem;padding:.6rem .8rem;border-radius:12px;border:1px solid rgba(168,85,247,.28);background:rgba(0,0,0,.28);color:inherit;font-size:1rem';
+        card.insertBefore(q, card.firstChild);
       }
     }
-    if (!q || q.__v139) return;
-    q.__v139 = true;
+    if (!q || q.__v140) return;
+    q.__v140 = true;
     q.placeholder = t('search');
     q.addEventListener('input', function () {
       var f = (q.value || '').toLowerCase().trim();
-      var body = $('stockBody');
-      if (!body) return;
-      body.querySelectorAll('tr[data-s]').forEach(function (tr) {
+      document.querySelectorAll('#stockBody tr[data-s]').forEach(function (tr) {
         var s = (tr.getAttribute('data-s') || '').toLowerCase();
         var n = ((tr.querySelector('.s-name') || {}).textContent || '').toLowerCase();
         tr.style.display = (!f || s.indexOf(f) >= 0 || n.indexOf(f) >= 0) ? '' : 'none';
@@ -267,95 +265,80 @@
       e.preventDefault();
       var v = (q.value || '').trim().toUpperCase().replace(/[^A-Z.]/g, '');
       if (!v) return;
-      if (EXTRA.indexOf(v) < 0 && TICKERS.indexOf(v) < 0) {
+      if (EXTRA.indexOf(v) < 0 && !BOARD.some(function (r) { return r.s === v; })) {
         EXTRA.unshift(v);
         try { localStorage.setItem('ct_stock_extra', JSON.stringify(EXTRA)); } catch (e) {}
-        var body = $('stockBody');
-        if (body && !body.querySelector('tr[data-s="' + v + '"]')) {
-          var tr = document.createElement('tr');
-          tr.className = 's-tr';
-          tr.setAttribute('data-s', v);
-          tr.innerHTML = '<td class="s-rank">+</td><td><b>' + v + '</b> <span class="muted s-name">' + v + '</span></td><td class="s-price">\u2014</td><td class="s-ch">\u2014</td><td class="s-div">\u2014</td>';
-          tr.onclick = function () { if (typeof window.openStock === 'function') window.openStock(v); };
-          body.insertBefore(tr, body.firstChild);
-        }
+        built = false;
+        buildOnce();
       }
-      softRefresh(true);
-      if (typeof window.openStock === 'function') window.openStock(v);
+      if (typeof window.openStock === 'function') try { window.openStock(v); } catch (e) {}
     });
   }
 
-  function installOverrides() {
-    window.__ct_paintStocks = function () { patchDigits(); };
-    window.__ct_loadStocks = function () { softRefresh(false); };
+  function takeOver() {
+    window.__ct_paintStocks = function () { paintDigits(); };
+    window.__ct_loadStocks = function () {
+      buildOnce();
+      paintDigits();
+      setTimeout(backgroundUpdate, 400);
+    };
   }
 
-  function watchBody() {
+  function watchWipe() {
     var body = $('stockBody');
-    if (!body || body.__watched) return;
-    body.__watched = true;
-    var obs = new MutationObserver(function () {
-      if (!body.querySelector('.s-price') || !body.querySelector('.s-div')) {
-        setTimeout(function () { buildBoard(); patchDigits(); }, 50);
+    if (!body || body.__w140) return;
+    body.__w140 = true;
+    new MutationObserver(function () {
+      if (!body.querySelector('.s-price')) {
+        built = false;
+        setTimeout(function () { buildOnce(); paintDigits(); }, 30);
       }
-    });
-    obs.observe(body, { childList: true });
+    }).observe(body, { childList: true });
   }
 
   function boot() {
-    installOverrides();
-    buildBoard();
-    patchDigits();
+    takeOver();
+    buildOnce();
+    paintDigits();
     wireSearch();
-    watchBody();
+    watchWipe();
 
     document.addEventListener('click', function (e) {
       if (e.target.closest('.nav-btn[data-p="stocks"]')) {
         setTimeout(function () {
-          installOverrides();
-          buildBoard();
+          takeOver();
+          built = false;
+          buildOnce();
           wireSearch();
-          watchBody();
-          softRefresh(true);
-        }, 180);
+          watchWipe();
+          setTimeout(backgroundUpdate, 300);
+        }, 150);
       }
       if (e.target.closest('#stockRef')) {
         e.preventDefault();
         e.stopPropagation();
-        softRefresh(true);
+        backgroundUpdate();
       }
     }, true);
 
     var curSel = $('curSel');
-    if (curSel && !curSel.__v139) {
-      curSel.__v139 = true;
+    if (curSel && !curSel.__v140) {
+      curSel.__v140 = true;
       curSel.addEventListener('change', function () {
         fxAt = 0;
-        loadFx().then(patchDigits);
-      });
-    }
-    var langSel = $('langSel');
-    if (langSel && !langSel.__v139) {
-      langSel.__v139 = true;
-      langSel.addEventListener('change', function () {
-        var body = $('stockBody');
-        var thead = body && body.parentElement && body.parentElement.querySelector('thead tr');
-        if (thead) {
-          thead.innerHTML = '<th>#</th><th>' + t('ticker') + '</th><th>' + t('price') + '</th><th>' + t('ch24') + '</th><th class="th-div">' + t('div') + '</th>';
-        }
-        if ($('stockQ')) $('stockQ').placeholder = t('search');
+        loadFx().then(paintDigits);
       });
     }
 
     setInterval(function () {
-      if ($('p-stocks') && $('p-stocks').classList.contains('on')) softRefresh(false);
-    }, 45000);
+      if ($('p-stocks') && $('p-stocks').classList.contains('on')) backgroundUpdate();
+    }, 120000);
 
     setTimeout(function () {
-      installOverrides();
-      buildBoard();
-      softRefresh(true);
-    }, 800);
+      takeOver();
+      buildOnce();
+      if ($('p-stocks') && $('p-stocks').classList.contains('on')) backgroundUpdate();
+    }, 600);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
