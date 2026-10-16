@@ -6,25 +6,18 @@
 <meta name="theme-color" content="#06050e"/>
 <title>Crypto Tracker</title>
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=124"/>
-<link rel="stylesheet" href="layout.css?v=124"/>
+<link rel="stylesheet" href="styles.css?v=125"/>
+<link rel="stylesheet" href="layout.css?v=125"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 <script>
 (function(){
-  if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      regs.forEach(function(r){ r.unregister(); });
-    });
-  }
-  if(window.caches){
-    caches.keys().then(function(keys){ keys.forEach(function(k){ caches.delete(k); }); });
-  }
+  if('serviceWorker' in navigator){navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});});}
+  if(window.caches){caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});}
 })();
 </script>
 <header class="topbar">
@@ -118,6 +111,8 @@
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@303a20b633a81b404965efa1942fe5ce0556f0e0/patch.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@8464214b5237724cb0be54a5b46778b1d943466d/fix.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c22143cc9cbaa33dee882a9aaedaad05f89090d3/fix-i18n.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@425993f3f5c686181a0848d15a24d7050ef99ef0/fix-stocks.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@4beb8e6f7e4de2036463f0c8b53e53d1b58f2f84/fix-news.js"></script>
 </body>
 </html>
