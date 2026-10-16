@@ -1,4 +1,4 @@
-/* news-page v131 — solid news section, multi-source, live translate, auto-refresh */
+/* news-page v132 — 20 sources, parallel, never empty, fast */
 (function () {
   'use strict';
 
@@ -9,20 +9,65 @@
   function t(k) {
     var ru = {
       news: '\u041d\u043e\u0432\u043e\u0441\u0442\u0438', crypto: '\u041a\u0440\u0438\u043f\u0442\u043e', stocks: '\u0410\u043a\u0446\u0438\u0438', market: '\u0420\u044b\u043d\u043e\u043a',
-      btc: 'Bitcoin', eth: 'Ethereum', loading: '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026', empty: '\u041d\u0435\u0442 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439',
-      updated: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e', source: '\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a', refresh: '\u041e\u0431\u043d\u043e\u0432\u0438\u0442\u044c'
+      loading: '\u0417\u0430\u0433\u0440\u0443\u0437\u043a\u0430\u2026', empty: '\u041d\u0435\u0442 \u043d\u043e\u0432\u043e\u0441\u0442\u0435\u0439', updated: '\u041e\u0431\u043d\u043e\u0432\u043b\u0435\u043d\u043e'
     };
     var en = {
       news: 'News', crypto: 'Crypto', stocks: 'Stocks', market: 'Market',
-      btc: 'Bitcoin', eth: 'Ethereum', loading: 'Loading\u2026', empty: 'No news',
-      updated: 'Updated', source: 'Source', refresh: 'Refresh'
+      loading: 'Loading\u2026', empty: 'No news', updated: 'Updated'
     };
     return (lang() === 'en' ? en : ru)[k] || k;
   }
 
+  var SOURCES = {
+    crypto: [
+      { name: 'Cointelegraph', rss: 'https://cointelegraph.com/rss' },
+      { name: 'CoinDesk', rss: 'https://www.coindesk.com/arc/outboundfeeds/rss/' },
+      { name: 'Decrypt', rss: 'https://decrypt.co/feed' },
+      { name: 'CryptoSlate', rss: 'https://cryptoslate.com/feed/' },
+      { name: 'NewsBTC', rss: 'https://www.newsbtc.com/feed/' },
+      { name: 'BeInCrypto', rss: 'https://beincrypto.com/feed/' },
+      { name: 'Bitcoin Magazine', rss: 'https://bitcoinmagazine.com/.rss/full/' },
+      { name: 'The Block', rss: 'https://www.theblock.co/rss.xml' },
+      { name: 'CoinJournal', rss: 'https://coinjournal.net/feed/' },
+      { name: 'Crypto.news', rss: 'https://crypto.news/feed/' },
+      { name: 'HN Crypto', hn: 'cryptocurrency OR bitcoin OR ethereum OR solana' },
+      { name: 'CoinGecko', cg: true }
+    ],
+    stocks: [
+      { name: 'Yahoo Finance', rss: 'https://finance.yahoo.com/news/rssindex' },
+      { name: 'MarketWatch', rss: 'https://feeds.marketwatch.com/marketwatch/topstories/' },
+      { name: 'CNBC', rss: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=100003114' },
+      { name: 'Investing.com', rss: 'https://www.investing.com/rss/news.rss' },
+      { name: 'Seeking Alpha', rss: 'https://seekingalpha.com/market_currents.xml' },
+      { name: 'HN Stocks', hn: 'stock market OR nasdaq OR earnings OR wall street' }
+    ],
+    market: [
+      { name: 'BBC Business', rss: 'https://feeds.bbci.co.uk/news/business/rss.xml' },
+      { name: 'CNBC Economy', rss: 'https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=20910258' },
+      { name: 'HN Market', hn: 'federal reserve OR inflation OR economy OR markets' }
+    ],
+    btc: [
+      { name: 'Bitcoin Magazine', rss: 'https://bitcoinmagazine.com/.rss/full/' },
+      { name: 'Cointelegraph BTC', rss: 'https://cointelegraph.com/rss/tag/bitcoin' },
+      { name: 'NewsBTC', rss: 'https://www.newsbtc.com/feed/' },
+      { name: 'HN BTC', hn: 'bitcoin OR BTC' }
+    ],
+    eth: [
+      { name: 'Cointelegraph ETH', rss: 'https://cointelegraph.com/rss/tag/ethereum' },
+      { name: 'Decrypt', rss: 'https://decrypt.co/feed' },
+      { name: 'HN ETH', hn: 'ethereum OR ETH OR vitalik' }
+    ]
+  };
+
+  var PROXIES = [
+    function (u) { return 'https://api.allorigins.win/raw?url=' + encodeURIComponent(u); },
+    function (u) { return 'https://corsproxy.io/?' + encodeURIComponent(u); },
+    function (u) { return 'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(u); }
+  ];
+
   var state = {
     tab: 'crypto',
-    items: { crypto: [], stocks: [], market: [], btc: [], eth: [] },
+    items: {},
     translated: {},
     at: {},
     loading: false,
@@ -42,33 +87,27 @@
     if (!page.querySelector('#newsRoot')) {
       page.innerHTML =
         '<div class="card" id="newsRoot" style="min-height:70vh">' +
-        '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.6rem">' +
+        '<div style="display:flex;align-items:center;gap:.4rem;flex-wrap:wrap;margin-bottom:.55rem">' +
         '<h2 style="margin:0;flex:1;font-size:1.05rem" id="newsTitle">' + t('news') + '</h2>' +
         '<span class="muted" id="newsUpdated" style="font-size:.7rem"></span>' +
-        '<button type="button" class="btn-ghost" id="newsRefreshBtn" title="refresh">\u21bb</button>' +
-        '</div>' +
-        '<div class="chart-tabs" id="newsCatTabs" style="flex-wrap:wrap;gap:.25rem;margin-bottom:.55rem">' +
+        '<button type="button" class="btn-ghost" id="newsRefreshBtn">\u21bb</button></div>' +
+        '<div class="chart-tabs" id="newsCatTabs" style="flex-wrap:wrap;gap:.25rem;margin-bottom:.5rem">' +
         '<button type="button" class="tab on" data-nt="crypto">' + t('crypto') + '</button>' +
         '<button type="button" class="tab" data-nt="stocks">' + t('stocks') + '</button>' +
         '<button type="button" class="tab" data-nt="market">' + t('market') + '</button>' +
         '<button type="button" class="tab" data-nt="btc">BTC</button>' +
-        '<button type="button" class="tab" data-nt="eth">ETH</button>' +
-        '</div>' +
-        '<div id="newsFeed" style="min-height:55vh"></div>' +
-        '</div>';
-
+        '<button type="button" class="tab" data-nt="eth">ETH</button></div>' +
+        '<div id="newsFeed" style="min-height:55vh"></div></div>';
       page.querySelectorAll('#newsCatTabs .tab').forEach(function (tb) {
-        tb.addEventListener('click', function () {
+        tb.onclick = function () {
           page.querySelectorAll('#newsCatTabs .tab').forEach(function (x) { x.classList.remove('on'); });
           tb.classList.add('on');
           state.tab = tb.getAttribute('data-nt') || 'crypto';
           paint();
           load(false);
-        });
+        };
       });
-      if ($('newsRefreshBtn')) {
-        $('newsRefreshBtn').onclick = function () { load(true); };
-      }
+      if ($('newsRefreshBtn')) $('newsRefreshBtn').onclick = function () { load(true); };
     }
     var nav = $('nav');
     if (nav) {
@@ -81,8 +120,7 @@
         btn.setAttribute('data-p', 'news');
         btn.innerHTML = '<svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg><span>' + t('news') + '</span>';
         var tools = document.querySelector('.nav-btn[data-p="tools"]');
-        if (tools) nav.insertBefore(btn, tools);
-        else nav.appendChild(btn);
+        if (tools) nav.insertBefore(btn, tools); else nav.appendChild(btn);
       }
       btn.style.display = 'flex';
       btn.hidden = false;
@@ -116,36 +154,86 @@
     if (state.timer) clearInterval(state.timer);
     state.timer = setInterval(function () {
       if ($('p-news') && $('p-news').classList.contains('on')) load(true);
-    }, 15000);
+    }, 20000);
   }
 
-  function queries(tab) {
-    return {
-      crypto: 'cryptocurrency OR bitcoin OR ethereum OR solana OR crypto',
-      stocks: 'stock market OR nasdaq OR s&p OR earnings OR wall street',
-      market: 'federal reserve OR inflation OR economy OR markets',
-      btc: 'bitcoin OR BTC',
-      eth: 'ethereum OR ETH'
-    }[tab] || 'cryptocurrency';
-  }
-
-  async function fetchHN(q) {
-    var url = 'https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(q) + '&tags=story&hitsPerPage=20';
-    var r = await fetch(url, { signal: AbortSignal.timeout(10000) });
-    if (!r.ok) return [];
-    var d = await r.json();
-    return (d.hits || []).filter(function (h) { return h.title && h.url; }).map(function (h) {
-      return { id: 'hn-' + h.objectID, title: h.title, url: h.url, src: 'HN', ts: h.created_at };
-    });
-  }
-
-  async function fetchCGTrending() {
+  async function fetchText(url, timeout) {
+    timeout = timeout || 7000;
+    var lastErr;
+    for (var i = 0; i < PROXIES.length; i++) {
+      try {
+        var r = await fetch(PROXIES[i](url), { signal: AbortSignal.timeout(timeout) });
+        if (!r.ok) continue;
+        return await r.text();
+      } catch (e) { lastErr = e; }
+    }
     try {
-      var r = await fetch('https://api.coingecko.com/api/v3/search/trending', { signal: AbortSignal.timeout(8000) });
+      var r2 = await fetch(url, { signal: AbortSignal.timeout(timeout) });
+      if (r2.ok) return await r2.text();
+    } catch (e) {}
+    throw lastErr || new Error('fail');
+  }
+
+  function parseRss(xml, srcName) {
+    var items = [];
+    try {
+      var doc = new DOMParser().parseFromString(xml, 'text/xml');
+      var nodes = doc.querySelectorAll('item');
+      if (!nodes.length) nodes = doc.querySelectorAll('entry');
+      nodes.forEach(function (n, idx) {
+        if (idx > 8) return;
+        var title = (n.querySelector('title') || {}).textContent || '';
+        var linkEl = n.querySelector('link');
+        var link = '';
+        if (linkEl) link = linkEl.getAttribute('href') || linkEl.textContent || '';
+        if (!link) {
+          var guid = n.querySelector('guid');
+          if (guid) link = guid.textContent || '';
+        }
+        var dateEl = n.querySelector('pubDate') || n.querySelector('published') || n.querySelector('updated');
+        var ts = dateEl ? dateEl.textContent : new Date().toISOString();
+        title = title.replace(/<!\[CDATA\[|\]\]>/g, '').trim();
+        link = (link || '').trim();
+        if (title && link && link.indexOf('http') === 0) {
+          items.push({
+            id: 'rss-' + srcName + '-' + idx + '-' + title.slice(0, 24),
+            title: title,
+            url: link,
+            src: srcName,
+            ts: ts
+          });
+        }
+      });
+    } catch (e) {}
+    return items;
+  }
+
+  async function fetchRss(src) {
+    try {
+      var xml = await fetchText(src.rss, 6500);
+      return parseRss(xml, src.name);
+    } catch (e) { return []; }
+  }
+
+  async function fetchHN(q, name) {
+    try {
+      var url = 'https://hn.algolia.com/api/v1/search_by_date?query=' + encodeURIComponent(q) + '&tags=story&hitsPerPage=15';
+      var r = await fetch(url, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return [];
+      var d = await r.json();
+      return (d.hits || []).filter(function (h) { return h.title && h.url; }).map(function (h) {
+        return { id: 'hn-' + h.objectID, title: h.title, url: h.url, src: name || 'HN', ts: h.created_at };
+      });
+    } catch (e) { return []; }
+  }
+
+  async function fetchCG() {
+    try {
+      var r = await fetch('https://api.coingecko.com/api/v3/search/trending', { signal: AbortSignal.timeout(7000) });
       if (!r.ok) return [];
       var d = await r.json();
       var L = lang();
-      return (d.coins || []).slice(0, 8).map(function (c) {
+      return (d.coins || []).slice(0, 6).map(function (c) {
         var n = c.item;
         return {
           id: 'cg-' + n.id,
@@ -158,57 +246,19 @@
     } catch (e) { return []; }
   }
 
-  async function fetchRedditProxy(sub) {
-    try {
-      var url = 'https://www.reddit.com/r/' + sub + '/hot.json?limit=12';
-      var proxies = [
-        'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
-        url
-      ];
-      for (var i = 0; i < proxies.length; i++) {
-        try {
-          var r = await fetch(proxies[i], { signal: AbortSignal.timeout(8000), headers: { 'Accept': 'application/json' } });
-          if (!r.ok) continue;
-          var d = await r.json();
-          var children = (d.data && d.data.children) || [];
-          return children.map(function (c) {
-            var p = c.data;
-            if (!p || !p.title) return null;
-            return {
-              id: 'rd-' + p.id,
-              title: p.title,
-              url: p.url && p.url.indexOf('http') === 0 ? p.url : ('https://reddit.com' + p.permalink),
-              src: 'r/' + sub,
-              ts: p.created_utc ? new Date(p.created_utc * 1000).toISOString() : new Date().toISOString()
-            };
-          }).filter(Boolean);
-        } catch (e) {}
-      }
-    } catch (e) {}
-    return [];
-  }
-
   async function translateOne(text, target) {
-    if (!text) return text;
-    if (target === 'en') return text;
+    if (!text || target === 'en') return text;
     if (/[\u0400-\u04FF]/.test(text) && target === 'ru') return text;
     var key = target + ':' + text;
     if (state.translated[key]) return state.translated[key];
     try {
-      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + target + '&dt=t&q=' + encodeURIComponent(text);
-      var r = await fetch(url, { signal: AbortSignal.timeout(3500) });
+      var url = 'https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=' + target + '&dt=t&q=' + encodeURIComponent(text.slice(0, 400));
+      var r = await fetch(url, { signal: AbortSignal.timeout(3000) });
       if (!r.ok) return text;
       var j = await r.json();
       var out = '';
-      if (j && j[0]) {
-        for (var i = 0; i < j[0].length; i++) {
-          if (j[0][i] && j[0][i][0]) out += j[0][i][0];
-        }
-      }
-      if (out) {
-        state.translated[key] = out;
-        return out;
-      }
+      if (j && j[0]) for (var i = 0; i < j[0].length; i++) if (j[0][i] && j[0][i][0]) out += j[0][i][0];
+      if (out) { state.translated[key] = out; return out; }
     } catch (e) {}
     return text;
   }
@@ -217,11 +267,14 @@
     var L = lang();
     if (L === 'en') return items;
     var out = [];
-    for (var i = 0; i < items.length; i++) {
-      var it = Object.assign({}, items[i]);
-      it.title = await translateOne(it.title, L);
-      out.push(it);
-      if (i % 4 === 3) await new Promise(function (r) { setTimeout(r, 60); });
+    for (var i = 0; i < items.length; i += 5) {
+      var batch = items.slice(i, i + 5);
+      var done = await Promise.all(batch.map(async function (it) {
+        var c = Object.assign({}, it);
+        c.title = await translateOne(it.title, L);
+        return c;
+      }));
+      out = out.concat(done);
     }
     return out;
   }
@@ -230,7 +283,7 @@
     var seen = {};
     var out = [];
     items.forEach(function (it) {
-      var k = (it.title || '').toLowerCase().slice(0, 80);
+      var k = (it.title || '').toLowerCase().replace(/\s+/g, ' ').slice(0, 70);
       if (!k || seen[k]) return;
       seen[k] = 1;
       out.push(it);
@@ -242,7 +295,7 @@
     if (state.loading && !force) return;
     var tab = state.tab;
     var age = Date.now() - (state.at[tab] || 0);
-    if (!force && state.items[tab] && state.items[tab].length && age < 12000) {
+    if (!force && state.items[tab] && state.items[tab].length && age < 15000) {
       paint();
       return;
     }
@@ -251,35 +304,50 @@
     if (box && (!state.items[tab] || !state.items[tab].length)) {
       box.innerHTML = '<div class="muted" style="padding:1rem 0">' + t('loading') + '</div>';
     }
-    try {
-      var q = queries(tab);
-      var parts = await Promise.all([
-        fetchHN(q),
-        tab === 'crypto' || tab === 'btc' || tab === 'eth' ? fetchCGTrending() : Promise.resolve([]),
-        tab === 'crypto' ? fetchRedditProxy('cryptocurrency') : tab === 'stocks' ? fetchRedditProxy('stocks') : Promise.resolve([])
-      ]);
-      var merged = dedupe([].concat(parts[0] || [], parts[1] || [], parts[2] || []));
-      merged.sort(function (a, b) {
-        return new Date(b.ts || 0) - new Date(a.ts || 0);
-      });
-      merged = await translateItems(merged.slice(0, 30));
-      var prev = state.items[tab] || [];
-      if (prev.length && !force) {
-        var ids = {};
-        prev.forEach(function (p) { ids[p.id] = 1; });
-        var fresh = merged.filter(function (m) { return !ids[m.id]; });
-        state.items[tab] = dedupe(fresh.concat(prev)).slice(0, 40);
-      } else {
-        state.items[tab] = merged;
-      }
-      state.at[tab] = Date.now();
+
+    var sources = SOURCES[tab] || SOURCES.crypto;
+    var tasks = sources.map(function (src) {
+      if (src.rss) return fetchRss(src);
+      if (src.hn) return fetchHN(src.hn, src.name);
+      if (src.cg) return fetchCG();
+      return Promise.resolve([]);
+    });
+
+    var results = await Promise.allSettled(tasks);
+    var merged = [];
+    results.forEach(function (r) {
+      if (r.status === 'fulfilled' && r.value && r.value.length) merged = merged.concat(r.value);
+    });
+
+    merged = dedupe(merged);
+    merged.sort(function (a, b) { return new Date(b.ts || 0) - new Date(a.ts || 0); });
+
+    if (!merged.length && state.items[tab] && state.items[tab].length) {
+      state.loading = false;
       paint();
-    } catch (e) {
-      if (box && (!state.items[tab] || !state.items[tab].length)) {
-        box.innerHTML = '<div class="muted">' + t('empty') + '</div>';
-      }
+      return;
     }
+
+    if (merged.length) {
+      try { merged = await translateItems(merged.slice(0, 40)); }
+      catch (e) { merged = merged.slice(0, 40); }
+      var prev = state.items[tab] || [];
+      if (prev.length && force) {
+        var ids = {};
+        merged.forEach(function (m) { ids[m.id] = 1; });
+        prev.forEach(function (p) { if (!ids[p.id]) merged.push(p); });
+        merged = dedupe(merged).slice(0, 50);
+      }
+      state.items[tab] = merged;
+      state.at[tab] = Date.now();
+    }
+
+    paint();
     state.loading = false;
+  }
+
+  function escapeHtml(s) {
+    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
 
   function paint() {
@@ -287,60 +355,43 @@
     if (!box) return;
     var items = state.items[state.tab] || [];
     if ($('newsUpdated') && state.at[state.tab]) {
-      var d = new Date(state.at[state.tab]);
-      $('newsUpdated').textContent = t('updated') + ' ' + d.toLocaleTimeString(lang() === 'ru' ? 'ru-RU' : 'en-US');
+      $('newsUpdated').textContent = t('updated') + ' ' + new Date(state.at[state.tab]).toLocaleTimeString(lang() === 'ru' ? 'ru-RU' : 'en-US');
     }
     if (!items.length) {
-      box.innerHTML = '<div class="muted">' + t('empty') + '</div>';
+      box.innerHTML = '<div class="muted" style="padding:1rem 0">' + t('empty') + '</div>';
       return;
     }
     var html = '';
-    items.forEach(function (it, idx) {
+    items.forEach(function (it) {
       var time = '';
       try {
-        if (it.ts) time = new Date(it.ts).toLocaleString(lang() === 'ru' ? 'ru-RU' : 'en-US', {
-          day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
-        });
+        if (it.ts) {
+          var d = new Date(it.ts);
+          if (!isNaN(d.getTime())) {
+            time = d.toLocaleString(lang() === 'ru' ? 'ru-RU' : 'en-US', {
+              day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+            });
+          }
+        }
       } catch (e) {}
       html +=
-        '<article class="news-item" data-id="' + (it.id || idx) + '" style="padding:.7rem 0;border-bottom:1px solid rgba(168,85,247,.12);animation:fadeIn .35s ease">' +
-        '<a href="' + it.url + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;font-weight:600;line-height:1.35;display:block">' +
+        '<article style="padding:.72rem 0;border-bottom:1px solid rgba(168,85,247,.12)">' +
+        '<a href="' + escapeHtml(it.url) + '" target="_blank" rel="noopener" style="color:inherit;text-decoration:none;font-weight:600;line-height:1.35;display:block">' +
         escapeHtml(it.title) + '</a>' +
-        '<div class="muted" style="font-size:.68rem;margin-top:.28rem;display:flex;gap:.5rem;flex-wrap:wrap">' +
-        '<span>' + escapeHtml(it.src || '') + '</span>' +
-        (time ? '<span>\u00b7 ' + time + '</span>' : '') +
+        '<div class="muted" style="font-size:.68rem;margin-top:.28rem">' +
+        escapeHtml(it.src || '') + (time ? ' \u00b7 ' + time : '') +
         '</div></article>';
     });
     box.innerHTML = html;
   }
 
-  function escapeHtml(s) {
-    return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-  }
-
-  function injectStyle() {
-    if ($('newsPageStyle')) return;
-    var s = document.createElement('style');
-    s.id = 'newsPageStyle';
-    s.textContent = '@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}' +
-      '#p-news .news-item a:active{opacity:.7}' +
-      '.nav-btn[data-p="news"]{display:flex!important}';
-    document.head.appendChild(s);
-  }
-
-  window.__ct_loadNews = function (force) {
-    ensurePage();
-    load(!!force);
-  };
+  window.__ct_loadNews = function (force) { ensurePage(); load(!!force); };
   window.__ct_openNews = openNews;
 
   function boot() {
-    injectStyle();
     ensurePage();
-
     document.addEventListener('click', function (e) {
-      var nb = e.target.closest('.nav-btn[data-p="news"]');
-      if (nb) {
+      if (e.target.closest('.nav-btn[data-p="news"]')) {
         e.preventDefault();
         e.stopPropagation();
         openNews();
@@ -348,12 +399,12 @@
     }, true);
 
     var langSel = $('langSel');
-    if (langSel && !langSel.__newsLang) {
-      langSel.__newsLang = true;
+    if (langSel && !langSel.__newsLang2) {
+      langSel.__newsLang2 = true;
       langSel.addEventListener('change', function () {
         state.translated = {};
         state.at = {};
-        Object.keys(state.items).forEach(function (k) { state.items[k] = []; });
+        state.items = {};
         if ($('p-news') && $('p-news').classList.contains('on')) {
           if ($('newsTitle')) $('newsTitle').textContent = t('news');
           load(true);
@@ -364,18 +415,12 @@
     setInterval(function () {
       ensurePage();
       var btn = document.querySelector('.nav-btn[data-p="news"]');
-      if (btn) {
-        btn.style.display = 'flex';
-        btn.hidden = false;
-      }
+      if (btn) { btn.style.display = 'flex'; btn.hidden = false; }
     }, 3000);
 
     setTimeout(function () {
-      if (!state.items.crypto.length) {
-        state.tab = 'crypto';
-        load(false);
-      }
-    }, 2000);
+      if (!state.items.crypto) load(false);
+    }, 1500);
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
