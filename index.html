@@ -11,8 +11,8 @@
 <link rel="apple-touch-icon" href="icon.svg"/>
 <link rel="icon" href="icon.svg"/>
 <link rel="manifest" href="manifest.json"/>
-<link rel="stylesheet" href="styles.css?v=133"/>
-<link rel="stylesheet" href="layout.css?v=133"/>
+<link rel="stylesheet" href="styles.css?v=134"/>
+<link rel="stylesheet" href="layout.css?v=134"/>
 <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 <style>
 .wrap{max-width:1100px!important;width:100%!important;margin:0 auto!important;box-sizing:border-box}
@@ -23,9 +23,6 @@
 #p-news.on{display:block!important}
 .s-tr{cursor:pointer}.s-tr:hover{background:rgba(168,85,247,.1)}
 .up{color:#22c55e}.dn{color:#ef4444}
-#dataStatus{opacity:.85}
-#p-news .card{min-height:70vh}
-#newsFeed{min-height:55vh}
 #btnAllCrypto,#btnAllStocks{width:100%;font-weight:600}
 </style>
 </head>
@@ -33,13 +30,9 @@
 <script>
 (function(){
   if('serviceWorker' in navigator){
-    navigator.serviceWorker.getRegistrations().then(function(regs){
-      regs.forEach(function(r){r.unregister();});
-    });
+    navigator.serviceWorker.getRegistrations().then(function(regs){regs.forEach(function(r){r.unregister();});});
   }
-  if(window.caches){
-    caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});
-  }
+  if(window.caches){caches.keys().then(function(keys){keys.forEach(function(k){caches.delete(k);});});}
 })();
 </script>
 <header class="topbar">
@@ -150,16 +143,14 @@
 </div>
 <div class="toast" id="toast"></div>
 <div class="modal-bg" id="helpModal" style="display:none"><div class="modal"><div class="modal-head"><b id="helpTitle">?</b><button type="button" class="btn-ghost" id="helpClose">×</button></div><div id="helpBody" class="muted"></div></div></div>
-<!-- v133 clean chain: core → patch → fixes → news → guard -->
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c65310356a0fb83f6498f449b6668b7c8ba4192a/data.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@972d93fa164ab67cedce30b02f3986956d7d71be/app.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@303a20b633a81b404965efa1942fe5ce0556f0e0/patch.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@c22143cc9cbaa33dee882a9aaedaad05f89090d3/fix-i18n.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@425993f3f5c686181a0848d15a24d7050ef99ef0/fix-stocks.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@e798366889fc7c50ecdf1394779ad061e8c628c1/bridge.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@e9d1fef93214b9fae66aecdd1c380a34f65a6582/finance-ui.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@b4a072e8ef0e6df249006a047585e12280fb4674/news-page.js"></script>
 <script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@19bcce43f5ce54f9cfbffb4161054bc4e12e7822/boot-guard.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/0xvilya/crypto-tracker@41b2b946b7061cb2448c224a819b8567aa37463a/core-ui.js"></script>
 <script>
 (function(){
   if(window.CTData&&window.CTData.loadFx)window.CTData.loadFx();
