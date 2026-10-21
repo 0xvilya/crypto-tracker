@@ -2,7 +2,7 @@
 (function(){
 'use strict';
 function $(id){return document.getElementById(id)}
-function lang(){var s=$('langSel');return (s&&s.value)||localStorage.getItem('ct_lang')||'ru'}
+function lang(){return 'en'}
 function cur(){return (localStorage.getItem('ct_cur')||'usd').toLowerCase()}
 function toast(m,ms){var e=$('toast');if(!e)return;e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(function(){e.classList.remove('show')},ms||2000)}
 
@@ -40,53 +40,99 @@ function imgUrl(id){var c=COINS[id];if(c&&c.img)return 'https://assets.coingecko
 
 async function loadFx(){try{var r=await fetch('https://api.exchangerate-api.com/v4/latest/USD');var d=await r.json();fx={usd:1,eur:d.rates.EUR||0.92,rub:d.rates.RUB||90,pln:d.rates.PLN||4}}catch(e){}}
 
+var cgAt=0;
 async function fetchPrices(){
-  var ids=Object.keys(COINS).join(',');
-  try{
-    var r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+ids+'&vs_currencies=usd&include_24hr_change=true');
-    var d=await r.json();
-    Object.keys(d).forEach(function(id){prices[id]={p:d[id].usd,ch:d[id].usd_24h_change||0}});
-  }catch(e){}
-  // Binance fallback for pairs
-  var pairs=Object.keys(COINS).filter(function(k){return COINS[k].pair}).map(function(k){return COINS[k].pair});
-  try{
-    var br=await fetch('https://api.binance.us/api/v3/ticker/24hr');
-    var bd=await br.json();
-    var map={};
-    bd.forEach(function(t){map[t.symbol]=t});
-    Object.keys(COINS).forEach(function(id){
-      var pair=COINS[id].pair;
-      if(pair&&map[pair]){
-        var t=map[pair];
-        prices[id]={p:+t.lastPrice,ch:+t.priceChangePercent};
+  var map={};
+  var pairs=[];
+  Object.keys(COINS).forEach(function(id){if(COINS[id].pair&&pairs.indexOf(COINS[id].pair)<0)pairs.push(COINS[id].pair)});
+  var urls=[
+    'https://api.binance.us/api/v3/ticker/24hr?symbols='+encodeURIComponent(JSON.stringify(pairs)),
+    'https://api.binance.us/api/v3/ticker/24hr'
+  ];
+  for(var i=0;i<urls.length;i++){
+    try{
+      var br=await fetch(urls[i],{signal:(typeof AbortSignal!=='undefined'&&AbortSignal.timeout)?AbortSignal.timeout(7000):undefined});
+      if(!br.ok)continue;
+      var bd=await br.json();
+      if(!Array.isArray(bd)||!bd.length)continue;
+      bd.forEach(function(t){if(t&&t.symbol)map[t.symbol]=t});
+      if(Object.keys(map).length)break;
+    }catch(e){}
+  }
+  Object.keys(COINS).forEach(function(id){
+    var pair=COINS[id].pair;
+    if(pair&&map[pair]){
+      var t=map[pair];
+      var prev=prices[id]&&prices[id].p;
+      var p=+t.lastPrice;
+      prices[id]={p:p,ch:+t.priceChangePercent,dir:prev==null?0:(p>prev?1:p<prev?-1:0)};
+    }
+  });
+  var missing=Object.keys(COINS).filter(function(id){return !prices[id]||prices[id].p==null});
+  if(missing.length&&Date.now()-cgAt>90000){
+    cgAt=Date.now();
+    try{
+      var r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids='+encodeURIComponent(missing.join(','))+'&vs_currencies=usd&include_24hr_change=true');
+      if(r.ok){
+        var d=await r.json();
+        Object.keys(d||{}).forEach(function(id){
+          if(d[id]&&d[id].usd!=null&&(!prices[id]||prices[id].p==null))prices[id]={p:d[id].usd,ch:d[id].usd_24h_change||0,dir:0};
+        });
       }
-    });
-  }catch(e){}
+    }catch(e){}
+  }
 }
 
-function paintWatch(){
-  var body=$('wBody');if(!body)return;
-  var html='';
-  watch.forEach(function(id,i){
-    var c=COINS[id]||{sym:id,name:id,apy:0};
-    var pr=prices[id]||{};
-    var chCls=pr.ch>0?'up':pr.ch<0?'dn':'';
-    html+='<tr class="s-tr" data-id="'+id+'" style="cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'+
-      '<td>'+(i+1)+'</td>'+
-      '<td><img src="'+imgUrl(id)+'" width="22" height="22" style="border-radius:50%;vertical-align:middle;margin-right:6px" onerror="this.style.display=\'none\'"/><b>'+c.sym+'</b> <span class="muted" style="font-size:.75rem">'+c.name+'</span></td>'+
-      '<td>'+money(pr.p)+'</td>'+
-      '<td class="'+chCls+'">'+pct(pr.ch)+'</td>'+
-      '<td>'+(c.apy?c.apy+'%':'\u2014')+'</td>'+
-      '<td><button type="button" class="btn-ghost rm" data-id="'+id+'" style="padding:.15rem .4rem">\u00d7</button></td></tr>';
-  });
-  if(!watch.length)html='<tr><td colspan="6" class="empty">'+ (lang()==='en'?'Empty watchlist':'Список пуст') +'</td></tr>';
-  body.innerHTML=html;
+function flashCell(el, dir){
+  if(!el||!dir)return;
+  el.classList.remove('tick-up','tick-dn');
+  void el.offsetWidth;
+  el.classList.add(dir>0?'tick-up':'tick-dn');
+}
+function bindWatchRows(body){
   body.querySelectorAll('tr[data-id]').forEach(function(tr){
+    if(tr.__ct)return; tr.__ct=1;
     tr.onclick=function(e){if(e.target.closest('.rm'))return;openDetail(tr.getAttribute('data-id'))};
   });
   body.querySelectorAll('.rm').forEach(function(b){
-    b.onclick=function(e){e.stopPropagation();var id=b.getAttribute('data-id');watch=watch.filter(function(x){return x!==id});localStorage.setItem('ct_watch',JSON.stringify(watch));paintWatch();toast(lang()==='en'?'Removed':'Удалено')};
+    if(b.__ct)return; b.__ct=1;
+    b.onclick=function(e){e.stopPropagation();var id=b.getAttribute('data-id');watch=watch.filter(function(x){return x!==id});localStorage.setItem('ct_watch',JSON.stringify(watch));paintWatch();toast('Removed')};
   });
+}
+function paintWatch(){
+  var body=$('wBody');if(!body)return;
+  if(!watch.length){body.innerHTML='<tr><td colspan="6" class="empty">Empty watchlist</td></tr>';return}
+  var rows=body.querySelectorAll('tr[data-id]');
+  var same=rows.length===watch.length;
+  if(same){for(var i=0;i<rows.length;i++){if(rows[i].getAttribute('data-id')!==watch[i]){same=false;break}}}
+  if(!same){
+    var html='';
+    watch.forEach(function(id,i){
+      var c=COINS[id]||{sym:id,name:id,apy:0};
+      html+='<tr class="s-tr" data-id="'+id+'" style="cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent">'+
+        '<td>'+(i+1)+'</td>'+
+        '<td><img src="'+imgUrl(id)+'" width="22" height="22" style="border-radius:50%;vertical-align:middle;margin-right:6px" onerror="this.style.display=\'none\'"/><b>'+c.sym+'</b> <span class="muted" style="font-size:.75rem">'+c.name+'</span></td>'+
+        '<td class="px">—</td><td class="ch">—</td><td>'+(c.apy?c.apy+'%':'—')+'</td>'+
+        '<td><button type="button" class="btn-ghost rm" data-id="'+id+'" style="padding:.15rem .4rem">×</button></td></tr>';
+    });
+    body.innerHTML=html;
+    rows=body.querySelectorAll('tr[data-id]');
+  }
+  rows.forEach(function(tr){
+    var id=tr.getAttribute('data-id');
+    var pr=prices[id]||{};
+    var pe=tr.querySelector('.px'), ce=tr.querySelector('.ch');
+    if(pe&&pr.p!=null){
+      var mp=money(pr.p);
+      if(pe.textContent!==mp){pe.textContent=mp;flashCell(pe,pr.dir||0)}
+    }
+    if(ce){
+      var mc=pct(pr.ch);
+      if(ce.textContent!==mc){ce.textContent=mc;ce.className='ch '+(pr.ch>0?'up':pr.ch<0?'dn':'')}
+    }
+    if(pr.dir)pr.dir=0;
+  });
+  bindWatchRows(body);
 }
 
 function openDetail(id){
@@ -108,7 +154,7 @@ function openDetail(id){
 async function loadChart(id,days){
   var el=$('tv');if(!el||!window.LightweightCharts)return;
   if(chart){try{chart.remove()}catch(e){}chart=null;series=null}
-  chart=LightweightCharts.createChart(el,{width:el.clientWidth,height:280,layout:{background:{color:'#12101c'},textColor:'#a78bfa'},grid:{vertLines:{color:'rgba(168,85,247,.08)'},horzLines:{color:'rgba(168,85,247,.08)'}},rightPriceScale:{borderVisible:false},timeScale:{borderVisible:false,timeVisible:true}});
+  var light=document.documentElement.getAttribute('data-theme')==='light';chart=LightweightCharts.createChart(el,{width:el.clientWidth,height:280,layout:{background:{color:light?'#ffffff':'#12101c'},textColor:light?'#1a1430':'#a78bfa'},grid:{vertLines:{color:'rgba(168,85,247,.08)'},horzLines:{color:'rgba(168,85,247,.08)'}},rightPriceScale:{borderVisible:false},timeScale:{borderVisible:false,timeVisible:true}});
   series=chart.addCandlestickSeries({upColor:'#22c55e',downColor:'#ef4444',borderVisible:false,wickUpColor:'#22c55e',wickDownColor:'#ef4444'});
   var data=[];
   try{
@@ -125,7 +171,7 @@ async function loadChart(id,days){
     }
   }catch(e){}
   if(data.length){series.setData(data);chart.timeScale().fitContent()}
-  if($('chartTip'))$('chartTip').textContent=data.length?(lang()==='en'?'Hover for OHLC':'Наведите для OHLC'):(lang()==='en'?'No chart data':'Нет данных графика');
+  if($('chartTip'))$('chartTip').textContent=data.length?'Hover a candle for OHLC':'No chart data';
   window.addEventListener('resize',function(){if(chart)chart.applyOptions({width:el.clientWidth})});
 }
 
@@ -141,7 +187,7 @@ async function loadCoinNews(id){
       if(!h.title||!h.url)return;
       html+='<div style="padding:.4rem 0;border-bottom:1px solid rgba(168,85,247,.1)"><a href="'+h.url+'" target="_blank" rel="noopener" style="color:inherit;font-size:.85rem">'+h.title+'</a></div>';
     });
-    box.innerHTML=html||'<div class="muted">'+ (lang()==='en'?'No news':'Нет новостей') +'</div>';
+    box.innerHTML=html||'<div class="muted">No headlines for this coin</div>';
   }catch(e){box.innerHTML='';}
 }
 
@@ -179,7 +225,7 @@ function paintPortfolio(){
       '<div><b>'+(COINS[it.id]?COINS[it.id].sym:it.id)+'</b> \u00d7 '+it.qty+' @ '+money(it.buy)+'</div>'+
       '<div style="text-align:right">'+money(curV)+' <span class="'+(diff>=0?'up':'dn')+'">'+(diff>=0?'+':'')+money(diff)+'</span> <button type="button" class="btn-ghost" data-i="'+i+'" style="padding:.1rem .3rem">\u00d7</button></div></div>';
   });
-  list.innerHTML=html||'<div class="muted">'+ (lang()==='en'?'Empty':'Пусто') +'</div>';
+  list.innerHTML=html||'<div class="muted">Empty</div>';
   list.querySelectorAll('button[data-i]').forEach(function(b){b.onclick=function(){portfolio.splice(+b.getAttribute('data-i'),1);localStorage.setItem('ct_port',JSON.stringify(portfolio));paintPortfolio()}});
   if(tot){tot.style.display=portfolio.length?'block':'none';if(val)val.textContent=money(sum);if(pnl){var d=sum-cost;pnl.textContent=(d>=0?'+':'')+money(d)+' ('+pct(cost?d/cost*100:0)+')';pnl.className=d>=0?'up':'dn'}}
 }
@@ -228,9 +274,21 @@ function boot(){
   });
 
   // currency / lang / theme
-  var curSel=$('curSel');if(curSel){curSel.value=cur();curSel.addEventListener('change',function(){localStorage.setItem('ct_cur',curSel.value);softRefresh()})}
-  var langSel=$('langSel');if(langSel){langSel.value=lang();langSel.addEventListener('change',function(){localStorage.setItem('ct_lang',langSel.value);location.reload()})}
-  var themeBtn=$('themeBtn');if(themeBtn){themeBtn.onclick=function(){document.body.classList.toggle('light');themeBtn.textContent=document.body.classList.contains('light')?(lang()==='en'?'Dark':'Тёмная'):(lang()==='en'?'Light':'Светлая');localStorage.setItem('ct_theme',document.body.classList.contains('light')?'light':'dark')};if(localStorage.getItem('ct_theme')==='light'){document.body.classList.add('light');themeBtn.textContent=lang()==='en'?'Dark':'Тёмная'}}
+  if((localStorage.getItem('ct_cur')||'')==='rub')localStorage.setItem('ct_cur','usd');
+  var curSel=$('curSel');if(curSel){curSel.value=cur()==='rub'?'usd':cur();curSel.addEventListener('change',function(){localStorage.setItem('ct_cur',curSel.value);softRefresh()})}
+  var themeBtn=$('themeBtn');
+  function applyTheme(light){
+    document.documentElement.setAttribute('data-theme', light?'light':'dark');
+    document.body.classList.toggle('light', !!light);
+    if(themeBtn)themeBtn.textContent=light?'Dark':'Light';
+    localStorage.setItem('ct_theme', light?'light':'dark');
+    if(chart){
+      var bg=light?'#ffffff':'#12101c';
+      var tx=light?'#1a1430':'#a78bfa';
+      try{chart.applyOptions({layout:{background:{color:bg},textColor:tx}})}catch(e){}
+    }
+  }
+  if(themeBtn){themeBtn.onclick=function(){applyTheme(document.documentElement.getAttribute('data-theme')!=='light')};applyTheme(localStorage.getItem('ct_theme')==='light')}
 
   // search
   var q=$('q'),sr=$('sr');
@@ -246,17 +304,17 @@ function boot(){
 
   // buttons
   if($('addTop'))$('addTop').onclick=function(){Object.keys(COINS).slice(0,12).forEach(function(id){if(watch.indexOf(id)<0)watch.push(id)});localStorage.setItem('ct_watch',JSON.stringify(watch));paintWatch();toast('+ Top')};
-  if($('refBtn'))$('refBtn').onclick=function(){softRefresh();toast(lang()==='en'?'Refreshed':'Обновлено')};
+  if($('refBtn'))$('refBtn').onclick=function(){softRefresh();toast('Updated')};
   if($('mhAdd'))$('mhAdd').onclick=function(){
     var id=$('mhCoinSel')?$('mhCoinSel').value:($('mhCoin')&&$('mhCoin').value);
     var qty=+$('mhQty').value,buy=+$('mhBuy').value;
-    if(!id||!qty)return toast(lang()==='en'?'Fill fields':'Заполните поля');
+    if(!id||!qty)return toast('Enter an amount');
     portfolio.push({id:id,qty:qty,buy:buy||(prices[id]?prices[id].p:0)});
     localStorage.setItem('ct_port',JSON.stringify(portfolio));paintPortfolio();toast('+');
   };
   if($('manBtn'))$('manBtn').onclick=async function(){
     var chain=$('manChain').value,addr=$('manAddr').value.trim();
-    if(!addr)return toast('Address?');
+    if(!addr)return toast('Paste an address');
     var res=$('manRes');res.innerHTML='...';
     try{
       if(chain==='ton'){
@@ -321,16 +379,16 @@ function boot(){
   document.querySelectorAll('.help-btn').forEach(function(b){
     b.onclick=function(){
       var k=b.getAttribute('data-help');
-      var texts={port:{ru:'Добавьте монеты вручную с количеством и ценой покупки. P&L считается автоматически.',en:'Add coins manually with quantity and buy price. P&L is calculated automatically.'},wallet:{ru:'Вставьте адрес — баланс подтянется из публичных RPC. Ключи никуда не уходят.',en:'Paste address — balance is fetched from public RPCs. Keys never leave your device.'},dca:{ru:'Симуляция регулярных покупок с предполагаемым ростом.',en:'Simulation of regular purchases with assumed growth.'},staking:{ru:'Расчёт дохода от стейкинга с/без компаундинга.',en:'Staking yield calculation with/without compounding.'}};
-      var t=texts[k]||{ru:'',en:''};
-      if($('helpTitle'))$('helpTitle').textContent='?';
-      if($('helpBody'))$('helpBody').textContent=t[lang()]||t.ru;
+      var texts={port:'Add coins with an amount and a buy price. Profit and loss update as the market moves.',wallet:'Paste a public address. The balance is read from a public node. Keys never leave this device.',dca:'Simulates buying a fixed amount every month with an assumed yearly growth rate.',staking:'Estimates staking yield, with or without daily compounding.'};
+      if($('helpTitle'))$('helpTitle').textContent='Help';
+      if($('helpBody'))$('helpBody').textContent=texts[k]||'';
       if($('helpModal'))$('helpModal').style.display='flex';
     };
   });
   if($('helpClose'))$('helpClose').onclick=function(){$('helpModal').style.display='none'};
 
-  setInterval(softRefresh,30000);
+  setInterval(softRefresh,8000);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')softRefresh()});
 }
 
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot();

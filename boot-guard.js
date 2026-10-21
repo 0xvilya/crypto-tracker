@@ -9,8 +9,7 @@
       btn.type='button';
       btn.className='nav-btn';
       btn.setAttribute('data-p','news');
-      var lang=(localStorage.getItem('ct_lang')||'ru');
-      var label=lang==='en'?'News':'\u041d\u043e\u0432\u043e\u0441\u0442\u0438';
+      var label='News';
       btn.innerHTML='<svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v14H4z"/><path d="M8 9h8M8 13h5"/></svg><span>'+label+'</span>';
       var tools=document.querySelector('.nav-btn[data-p="tools"]');
       if(tools) nav.insertBefore(btn,tools); else nav.appendChild(btn);

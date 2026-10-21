@@ -194,3 +194,28 @@ tr[data-id]:hover { background: var(--card2); }
   .chip { display: none; }
   .logo { font-size: .85rem; }
 }
+
+.dn { color: var(--down); font-weight: 600; }
+.tick-up { animation: tickUp .65s ease; border-radius: 6px; }
+.tick-dn { animation: tickDn .65s ease; border-radius: 6px; }
+@keyframes tickUp { 0% { background: rgba(34,197,94,.34); } 100% { background: transparent; } }
+@keyframes tickDn { 0% { background: rgba(239,68,68,.32); } 100% { background: transparent; } }
+.live-dot {
+  width: 8px; height: 8px; border-radius: 50%; background: #22c55e;
+  box-shadow: 0 0 0 0 rgba(34,197,94,.65);
+  display: inline-block; margin-right: .35rem; vertical-align: middle;
+  animation: livePulse 1.6s infinite;
+}
+@keyframes livePulse {
+  0% { box-shadow: 0 0 0 0 rgba(34,197,94,.55); }
+  70% { box-shadow: 0 0 0 7px rgba(34,197,94,0); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
+}
+.news-item a {
+  display: block; color: var(--text); font-weight: 600; line-height: 1.35;
+  padding: .35rem 0; min-height: 44px; touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.s-tr, .nav-btn, .btn, .tab, button, .s-gl { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.s-price, .px { font-variant-numeric: tabular-nums; font-weight: 650; }
+#stockLive { font-variant-numeric: tabular-nums; }

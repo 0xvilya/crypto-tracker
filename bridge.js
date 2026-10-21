@@ -93,6 +93,7 @@
   }
 
   async function boostStockPrices() {
+    return;
     if (!window.CTData || !window.CTData.cachedFetch) return;
     var need = ['DIS', 'CRM', 'ORCL', 'ADBE', 'UBER', 'AAPL', 'MSFT'];
     for (var i = 0; i < need.length; i++) {

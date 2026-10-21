@@ -1,17 +1,15 @@
-# Crypto Tracker
+# Finance Tracker
 
 Live: https://0xvilya.github.io/crypto-tracker/
 
-Фиолетовый крипто-трекер (RU/EN):
+Purple crypto and equity terminal. English only.
 
-- Watchlist с иконками, ценой, 24h и APY стейкинга
-- Свечной график (OHLC tooltip при наведении)
-- Новости по монете + краткий AI-анализ
-- Gainers / Losers
-- Портфель, кошелёк (ETH/BTC/SOL/TON), DCA & стейкинг (dropdown)
-- Market Cap + BTC/ETH Dominance
-- Поиск монет, мультивалютность (USD/EUR/RUB/PLN)
-- Подсказки «?» по терминам
-- **Авто-обновление**: цены каждые 30 сек, новости каждые 2 мин
+- Crypto watchlist with live Binance prices (about every 8s) and a candlestick chart
+- Stock board with live last-sale prices, 24h change and dividend yield
+- Headlines for crypto, stocks and macro
+- Manual portfolio with profit and loss
+- Public wallet lookup (ETH, BSC, Polygon, Arbitrum, Optimism, Base, Solana, TON, Bitcoin)
+- Converter, DCA, staking, profit target, gas
+- USD / EUR / PLN, dark and light purple themes
 
-Чистый HTML/CSS/JS, GitHub Pages.
+Plain HTML, CSS and JavaScript. Hosted on GitHub Pages. Portfolio data stays in the browser.
